@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <title>3-Sides Planner — OPEN FILE</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    
+    <!-- Favicons -->
+    <link rel="icon" type="image/svg+xml" sizes="any" href="/3-sides-planner.io/favicon.svg">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/3-sides-planner.io/favicon-16.png">
+    <link rel="apple-touch-icon" href="/3-sides-planner.io/icon-192.png"> <!-- iOS Home screen -->
+
+    <style>
+        :root {
+            color-scheme: light dark;
+        }
+
+        body {
+            font: 16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+            padding: 1rem;
+            margin: 0
+        }
+
+        .card {
+            border: 1px solid rgba(0, 0, 0, .15);
+            border-radius: 12px;
+            padding: 1rem;
+            max-width: 700px
+        }
+
+        .muted {
+            opacity: .7
+        }
+
+        .btn {
+            display: inline-block;
+            margin-top: .75rem;
+            padding: .5rem 1rem;
+            border: 1px solid #000;
+            border-radius: 10px;
+            text-decoration: none
+        }
+
+        pre {
+            white-space: pre-wrap;
+            word-break: break-word;
+            background: rgba(0, 0, 0, .04);
+            padding: .75rem;
+            border-radius: 10px
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <h1>Opening file…</h1>
+        <p class="muted">If nothing happens, this feature requires the app to be <b>installed on desktop Chrome/Edge</b>
+            and launched via “Open with” the PWA.</p>
+        <a class="btn" href="index.html">Back to Home</a>
+        <div id="preview" class="muted" style="margin-top:1rem;"></div>
+    </div>
+
+    <script>
+        // Helper to redirect correctly on dev (/) and GH Pages (/three-sides-planner.io/)
+        const base = location.pathname.startsWith('/3-sides-planner.io/') ? '/3-sides-planner.io/' : '/';
+        const go = (path) => location.replace(base + path);
+
+        async function handleFiles(params) {
+            if (!params?.files?.length) { go('index.html'); return; }
+            const fileHandle = params.files[0];
+            const file = await fileHandle.getFile();
+            const text = await file.text();
+
+            // Persist for your journal page to pick up
+            const key = `inbox:file:${Date.now()}`;
+            try { localStorage.setItem(key, JSON.stringify({ name: file.name, text })); } catch { }
+
+            // Optional quick preview (good for debugging)
+            const pre = document.getElementById('preview');
+            pre.innerHTML = `<h3>Captured: ${file.name}</h3><pre>${text.slice(0, 2000)}</pre>`;
+
+            // Send to journal
+            setTimeout(() => go('journal.html?from=file'), 400);
+        }
+
+        // File Handling API (desktop installed PWAs)
+        if ('launchQueue' in window && 'files' in LaunchParams.prototype) {
+            launchQueue.setConsumer(handleFiles);
+        } else {
+            // Not supported → just go home
+            go('index.html');
+        }
+    </script>
+</body>
+
+</html>

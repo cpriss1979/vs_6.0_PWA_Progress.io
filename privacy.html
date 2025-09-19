@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Privacy Policy - 3 Sides Planner</title>
+    <meta name="description" content="Privacy Policy for 3 Sides Planner by Crystal Roberts (GlowCode Studio).">
+    
+    <!-- At the top of delete-account.html <body> or in <head> -->
+    <script type="module">
+        import './firebase-init.js'; // ensures app/auth/db are initialized
+    </script>
+        
+    <style>
+        body {
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 24px;
+            color: #111;
+            background: #fff;
+        }
+
+        main {
+            max-width: 860px;
+            margin: 0 auto;
+        }
+
+        h1,
+        h2 {
+            line-height: 1.25;
+        }
+
+        h1 {
+            font-size: 1.9rem;
+            margin-top: 0;
+        }
+
+        h2 {
+            font-size: 1.25rem;
+            margin-top: 1.6rem;
+        }
+
+        a {
+            color: #0b5bd3;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .meta {
+            color: #444;
+        }
+
+        ul {
+            padding-left: 1.2rem;
+        }
+
+        .small {
+            color: #555;
+            font-size: .95rem;
+        }
+
+/* ============ added back button ========= */
+.backToApp {
+      display: inline-block;
+      margin: 2rem auto 0;
+      padding: 10px 20px;
+      background-color: #000 !important;
+      color: #fff !important;
+      font-size: 1rem;
+      font-weight: 600;
+      border: 1px solid white;
+      border-radius: 8px;
+      text-decoration: none;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+      transition: background-color .3s, transform .2s;
+      text-align: center;
+    }
+
+    .backToApp:hover {
+      background-color: #222 !important;
+      transform: scale(1.03);
+    }
+
+    .backToApp:active {
+      transform: scale(0.98);
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 0 1rem max(1.5rem, env(safe-area-inset-bottom));
+      }
+    }
+    </style>
+</head>
+
+<body>
+    <main>
+        <br>
+        <h1>Privacy Policy for 3 Sides Planner</h1>
+        <p class="meta"><strong>Effective Date:</strong> September 11, 2025</p>
+
+        <p>
+            My name is <strong>Crystal Roberts</strong> (GlowCode Studio). I created <em>3 Sides Planner</em> to help
+            people living with bipolar better understand and track their wellness in one place. While bipolar is often
+            described as “highs and lows,” I believe there is a third, essential side: <strong>stability</strong>. We
+            all experience a range of emotions; we’re not always a “roller coaster.” This app supports balance,
+            reflection, and awareness across highs, lows, and stable moments.
+        </p>
+
+        <h2>Scope</h2>
+        <p>
+            This policy explains how 3 Sides Planner handles information within the mobile/web app and on our website
+            hosted at
+            <a href="https://cpriss1979.github.io/3-sides-planner.io/" target="_blank"
+                rel="noopener">https://cpriss1979.github.io/3-sides-planner.io/</a>.
+        </p>
+
+        <h2>Information We Collect</h2>
+        <p>
+            3 Sides Planner does not collect your name, physical address, or precise location. To use certain features,
+            you may create an account:
+        </p>
+        <ul>
+            <li><strong>Login data (via Firebase Authentication):</strong> email and password (or Google sign-in) are
+                required to access protected features such as <em>Toolkit</em> (feel-good tools, journal entries),
+                <em>Wellness</em> (wellness plan, letter to future self, support people), <em>Pet</em>, and
+                <em>Themes</em>.</li>
+            <li><strong>No login required:</strong> the Home page (<code>index.html</code>) and <em>Important
+                    Numbers</em> (<code>important-numbers.html</code>) are accessible without sign-in. Emergency/support
+                numbers shown are for your convenience and are not tracked by us.</li>
+            <li><strong>User content:</strong> journal entries, mood/side selections (highs, lows, stability), toolkit
+                items, wellness plan details, pet progress, and theme selections. These may be stored locally on your
+                device and, if you sign in, in your personal cloud data.</li>
+        </ul>
+
+        <h2>How We Use Data</h2>
+        <p>
+            Information you add is used only to provide core functionality: tracking highs/lows/stability, journaling,
+            customizing themes, and supporting your wellness routines. We do <strong>not</strong> sell or share your
+            data with third parties for advertising or marketing.
+        </p>
+
+        <h2>Data Storage & Security</h2>
+        <ul>
+            <li><strong>Local storage (on your device):</strong> for quick access and offline use (e.g.,
+                localStorage/IndexedDB). You control this data on your device.</li>
+            <li><strong>Cloud storage (Firebase Cloud Firestore):</strong> if you sign in, your account-linked content
+                may be stored in Firestore under your unique user ID. Access is restricted to your account credentials.
+            </li>
+        </ul>
+        <p>
+            While we take reasonable steps to protect your information, no method of storage or transmission is 100%
+            secure.
+        </p>
+
+        <h2>Third-Party Services</h2>
+        <ul>
+            <li><strong>Firebase Authentication:</strong> used for account sign-in and identity. See <a
+                    href="https://firebase.google.com/support/privacy" target="_blank" rel="noopener">Firebase Privacy
+                    &amp; Security</a>.</li>
+            <li><strong>Firebase Cloud Firestore:</strong> used to store your account-specific data (e.g., journals,
+                toolkit items, wellness plan, pet progress, themes) when you are signed in. See the same Firebase policy
+                link above.</li>
+            <li><strong>GitHub Pages:</strong> hosts our website and this policy at <a
+                    href="https://cpriss1979.github.io/3-sides-planner.io/" target="_blank"
+                    rel="noopener">cpriss1979.github.io/3-sides-planner.io</a>.</li>
+        </ul>
+
+        <h2>Your Choices & Controls</h2>
+        <ul>
+            <li><strong>Local data:</strong> you can clear local data from the app’s settings (e.g., a “Reset Local
+                Data” option) or via your browser/app storage settings.</li>
+            <li><strong>Account deletion (in-app):</strong> you can permanently delete your account and associated cloud
+                data from the app’s <em>Delete Account</em> option. This removes your Firebase Authentication account
+                and your Firestore documents tied to your user ID.</li>
+            <li><strong>Manual requests:</strong> you may email us to request account/data deletion if you’re unable to
+                access the in-app option.</li>
+        </ul>
+
+        <h2>Children’s Privacy</h2>
+        <p>
+            3 Sides Planner is intended for users aged <strong>18 and over</strong>. We do not knowingly collect
+            information from children. If you believe a minor has provided data, please contact us so we can delete it.
+        </p>
+
+        <h2>Data Retention</h2>
+        <p>
+            Local data remains on your device until you clear it. Cloud data in Firestore remains associated with your
+            account until you use the in-app deletion feature or request deletion via email.
+        </p>
+
+        <h2>International Users</h2>
+        <p>
+            Firebase may process and store data on servers located in the United States or other countries. By using the
+            app, you consent to any such transfer, processing, and storage.
+        </p>
+
+        <h2>Changes to This Policy</h2>
+        <p>
+            We may update this policy from time to time to reflect app improvements, changes in third-party services, or
+            legal requirements. We will update the effective date above when changes are made.
+        </p>
+
+        <h2>Contact</h2>
+        <p>
+            For questions or data requests, contact: <a
+                href="mailto:glowcodestudio@gmail.com">glowcodestudio@gmail.com</a>
+        </p>
+
+        <p class="small">
+            Publisher: GlowCode Studio (Crystal Roberts)
+        </p>
+    </main>
+    <div style="text-align: center;">
+        <a href="index.html" class="backToApp">Back to App</a>
+        </div>
+</body>
+
+</html>

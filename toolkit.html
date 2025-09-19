@@ -1,0 +1,1291 @@
+<!-- ----------- Feel good Tools : toolkit.html ------------ -->
+<!DOCTYPE html>
+<html lang="en" data-ready="0">
+
+<head>
+  <script>
+    (function () {
+      const PUBLIC_PAGES = ["index.html", "important-numbers.html", "privacy.html", "login.html", "register.html"];
+      const path = location.pathname.split("/").pop() || "index.html";
+      if (PUBLIC_PAGES.includes(path)) return; // no-op on public pages
+
+      // Hide immediately to avoid UI flash on protected pages
+      document.documentElement.style.visibility = "hidden";
+
+      const goLogin = () => {
+        location.href = "login.html?next=" + encodeURIComponent(location.href);
+      };
+
+      // Try Firebase; fall back to a temporary session flag if needed
+      (async () => {
+        try {
+          const { getAuth, onAuthStateChanged } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js");
+          const { auth } = await import("./firebase-init.js");
+          onAuthStateChanged(auth, (user) => {
+            if (!user) return goLogin();
+            document.documentElement.style.visibility = "";
+            document.documentElement.setAttribute("data-ready", "1");
+          });
+        } catch (e) {
+          const authed = sessionStorage.getItem("fs_logged_in") === "1"; // temporary fallback
+          if (!authed) return goLogin();
+          document.documentElement.style.visibility = "";
+          document.documentElement.setAttribute("data-ready", "1");
+        }
+      })();
+    })();
+  </script>
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>3-Sides Planner — FEEL-GOOD TOOLS</title>
+
+  <!-- Require login for this page (auth.js will handle redirect) -->
+  <meta name="auth" content="required">
+  <meta name="mobile-web-app-capable" content="yes">
+
+  <!-- 1) FOUC guard -->
+  <style>
+    html:not([data-ready="1"]) {
+      visibility: hidden
+    }
+  </style>
+
+  <!-- 2) Base paint so Safari/Chrome UI bars don’t flash the wrong color -->
+  <style>
+    html,
+    body {
+      min-height: 100%;
+      margin: 0;
+      background: var(--bg-color, #fff) !important;
+      color: var(--text-color, #111) !important;
+    }
+  </style>
+
+  <!-- PWA + will be kept in sync with your theme by JS -->
+  <!-- Absolute (good for GitHub Pages) -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#6a5acd">
+  <meta name="color-scheme" content="dark light">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <!-- Fonts & CSS (non-blocking) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans&display=swap" rel="stylesheet">
+
+  <!-- Favicons -->
+  <link rel="icon" type="image/svg+xml" sizes="any" href="/3-sides-planner.io/favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/3-sides-planner.io/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/3-sides-planner.io/favicon-16.png">
+  <link rel="apple-touch-icon" href="/3-sides-planner.io/icon-192.png"> <!-- iOS Home screen -->
+
+  <link rel="preload" href="style.css" as="style" onload="this.rel='stylesheet'">
+  <noscript>
+    <link rel="stylesheet" href="style.css">
+  </noscript>
+
+  <link rel="preload" href="mainTheme.css" as="style" onload="this.rel='stylesheet'">
+
+  <noscript>
+    <link rel="stylesheet" href="mainTheme.css">
+  </noscript>
+
+  <!-- Early Theme Boot: apply saved theme instantly + sync theme-color (fixes Safari bar color) -->
+  <script>
+    (function () {
+      try {
+        const root = document.documentElement;
+        const userKey = localStorage.getItem("currentUser") || "anon";
+        const savedTheme =
+          localStorage.getItem(userKey + ":themeClass") ||
+          localStorage.getItem("themeClass") ||
+          localStorage.getItem("themeClass:last") ||
+          "theme-original";
+
+        // Keep non-theme classes; swap only theme-*
+        const keep = (root.className || "")
+          .split(/\s+/).filter(Boolean).filter(c => !c.startsWith("theme-"));
+        root.className = [...keep, savedTheme].join(" ");
+
+        // Sync Safari/Chrome UI bars to your CSS variable
+        let meta = document.querySelector('meta[name="theme-color"]');
+        if (!meta) { meta = document.createElement('meta'); meta.name = 'theme-color'; document.head.appendChild(meta); }
+        const cs = getComputedStyle(root);
+        meta.content = (cs.getPropertyValue('--accent-color') ||
+          cs.getPropertyValue('--accent') ||
+          '#6a5acd').trim() || '#6a5acd';
+      } catch { }
+    })();
+  </script>
+
+  <!-- SW + Auth gate (non-blocking) -->
+  <script src="sw-register.js" defer></script>
+  <script type="module" src="auth.js"></script>
+
+  <!-- =================== Page-local styles continue here ================= -->
+  <style>
+    html,
+    body {
+      scroll-behavior: smooth;
+      overscroll-behavior-y: contain;
+      /* or 'none' if needed */
+    }
+
+    .page-wrapper {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      background-color: var(--bg-color);
+      /* this keeps your theme consistent */
+    }
+
+    .container {
+      flex-grow: 1;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      background-color: var(--bg-color);
+      background-size: cover;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      display: block;
+      box-sizing: border-box;
+      font-family: 'Open Sans', sans-serif;
+      color: black;
+      overflow-x: hidden;
+    }
+
+    .toolkit-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: rgb(250, 230, 250) !important;
+      color: rgb(40, 130, 180);
+      border-left: 8px solid rgb(40, 130, 180);
+      border-radius: 1rem;
+      margin-bottom: 0.75rem;
+      padding: .75rem .75rem;
+      /* smaller top/bottom and left/right padding */
+      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.05);
+      transition: background-color 0.3s ease;
+    }
+
+    .toolkit-item:hover {
+      background-color: rgb(221, 151, 221) !important;
+    }
+
+    .icon-button:hover {
+      background-color: rgb(91, 5, 91) !important;
+    }
+
+    .toolkit-item span {
+      flex-grow: 1;
+      font-size: 1rem;
+      color: black;
+      text-align: left;
+    }
+
+    /* Feel-Good Chart Table */
+    .feel-good-chart {
+      margin: 2rem auto;
+      width: 100%;
+      max-width: 600px;
+      border-collapse: collapse;
+      /* heart icon, backrgound text box color */
+      background-color: rgb(221, 151, 221) !important;
+      box-shadow: 0 4px 10px rgba(83, 27, 27, 0.08);
+    }
+
+    .feel-good-chart td {
+      padding: 1rem;
+      font-size: 1.1rem;
+      /* text color inside feel-good heart, toolkit.html */
+      color: black;
+      text-align: center;
+      /* border under feel good ideas, located when opening heart */
+      border-bottom: .75px solid black;
+    }
+
+    .feel-good-chart tr:hover td {
+      background-color: rgba(212, 89, 212, 0.597);
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    /* Dropdown Box */
+    .feel-good-content {
+      display: none;
+      /* border around entire feel-good example container */
+      border: 2px solid black;
+      border-radius: 2.5rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+      background-color: rgb(3, 3, 82);
+    }
+
+    /* Container Around Chart and Button */
+    .feel-good-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      margin: 1rem auto;
+      width: 100%;
+      max-width: 600px;
+      box-sizing: border-box;
+    }
+
+    /* Toolkit Custom Entries List */
+    .toolkit-list {
+      list-style: none;
+      padding: 0;
+      margin: 1rem 0 2rem 0;
+    }
+
+    /* Heart Circle Button */
+    .dropdown-icon-btn {
+      width: 70px;
+      height: 70px;
+      background-color: rgb(3, 3, 82);
+      border: 5px solid rgb(173, 245, 247);
+      color: white;
+      font-size: 1.6rem;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    /* Wrapper for Toolkit Page */
+    .page-wrapper {
+      display: flex;
+      align-items: center;
+      flex-direction: column;
+      text-align: center;
+      margin-top: 1rem;
+      color: black;
+    }
+
+    .dreamy-box {
+      position: relative;
+      overflow: hidden;
+      border-radius: 1.5rem;
+      padding: 2rem;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+      margin: 2rem auto;
+      text-align: center;
+      border-top: 3px solid rgba(40, 130, 180, 0.2);
+      border-bottom: 3px solid rgba(40, 130, 180, 0.2);
+      width: 100%;
+      max-width: 600px;
+      box-sizing: border-box;
+      z-index: 0;
+      /* 💫 Sparkle background */
+    }
+
+    .dreamy-box>*:not(.sparkle-layer),
+    .dreamy-box .sparkle {
+      position: relative;
+      z-index: 2;
+    }
+
+    .dreamy-box h2 {
+      font-family: 'Open Sans', sans-serif;
+      color: #2988a7;
+      font-size: 2rem;
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+
+    .dreamy-box label {
+      display: block;
+      margin-bottom: 1.8rem;
+      font-family: 'Open Sans', sans-serif;
+      font-size: 1rem;
+    }
+
+    .dreamy-box textarea {
+      width: 100%;
+      padding: 1rem;
+      border: 2px solid #90caf9;
+      border-radius: 1rem;
+      resize: vertical;
+      background: #f0fdfb;
+      font-family: 'Open Sans', sans-serif;
+      font-size: 1rem;
+      box-shadow: inset 0 1px 5px rgba(0, 0, 0, 0.05);
+    }
+
+    /* dreamy background on toolkit.html behind entries and text */
+    .dreamy-box {
+      background: rgb(3, 3, 82);
+      border-radius: 1.5rem;
+      padding: 0.5rem;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+      margin: 3rem 0;
+      text-align: center;
+      border-top: 3px solid rgba(40, 130, 180, 0.2);
+      border-bottom: 3px solid rgba(40, 130, 180, 0.2);
+    }
+
+    .dreamy-box h2 {
+      font-family: 'Patrick Hand';
+      color: white;
+      font-size: 1.6rem;
+      margin-bottom: 2.45rem;
+    }  
+
+    #authControls {
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    #authControls p {
+      margin: 0;
+      padding: 0;
+    }
+
+    .page-header {
+      margin-top: 0;
+      padding-top: 0;
+    }
+
+    body {
+      margin-top: 0;
+    }
+
+    /* -------------------- FORM ELEMENTS -------------------- */
+    input[type="text"],
+    textarea {
+      width: 95%;
+      padding: 1rem;
+      font-size: 1rem;
+      border-radius: 1rem;
+      border: 1px solid rgba(69, 111, 179, 0.903);
+      background-color: #f1f8e9;
+      resize: vertical;
+      margin-top: 0.5rem;
+    }
+
+    /* -------------------- BUTTONS -------------------- */
+    .delete-button {
+      background-color: rgb(226, 198, 198) !important;
+    }
+
+    .delete-button:hover {
+      background-color: rgb(179, 164, 164) !important;
+    }
+
+    .icon-button {
+      background-color: rgb(221, 151, 221) !important;
+      color: black !important;
+      border: 1px solid black !important;
+      padding: 15px !important;
+      font-size: 1rem;
+      border-radius: 10px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 0 6px rgba(255, 255, 255, 0.2);
+      transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+
+    .icon-button:hover {
+      background-color: #222;
+      transform: scale(1.03);
+    }
+
+    .button,
+    .toolkit-entry button {
+      background-color: #2988a7;
+      color: white;
+      border-radius: .85rem;
+      font-size: 1rem;
+      padding: 1rem 2rem;
+      cursor: pointer;
+      border: none;
+      display: block;
+      margin-left: 0 !important;
+      margin-top: 1rem;
+      text-align: left;
+      transition: background-color 0.3s ease;
+    }
+
+    .button:hover,
+    .toolkit-entry button:hover {
+      background-color: #66bb6a;
+      transform: scale(1.05);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .button-row {
+      display: flex;
+      flex-direction: row;
+      /* Put buttons side-by-side */
+      justify-content: center;
+      /* Center horizontally */
+      align-items: center;
+      /* Center vertically just in case */
+      gap: 1.5rem;
+      margin-top: 2rem;
+      flex-wrap: wrap;
+      /* Nice for small screens */
+    }
+
+    .button-row button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: auto;
+    }
+
+    .dropdown-btn {
+      background-color: rgb(59, 162, 197);
+      border: 5px solid rgb(200, 245, 245);
+      color: white;
+      font-size: 1.1rem;
+      padding: 0.8rem 1.5rem;
+      border-radius: 50rem;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      transition: background-color 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .dropdown-icon-btn:hover {
+      background-color: rgba(19, 19, 108, 0.812);
+    }
+
+    /* Navigation */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: #fafafa;
+      border-top: 1px solid rgba(69, 111, 179, 0.903);
+      display: flex;
+      justify-content: space-around;
+      padding: 0.8rem 0;
+      z-index: 1000;
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .nav-icon {
+      text-decoration: none;
+      color: rgba(69, 111, 179, 0.903);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-size: 1.2rem;
+    }
+
+    .nav-icon span {
+      font-size: 0.75rem;
+      margin-top: 0.2rem;
+    }
+
+    .nav-icon:hover {
+      color: #72aadf;
+    }
+
+    /* -------------------- TYPOGRAPHY -------------------- */
+    .three-d-title {
+      font-family: 'Open Sans', sans-serif;
+      font-size: 2.2rem;
+      font-weight: bold;
+      text-align: center;
+      text-shadow: 2px 2px rgba(0, 0, 0, 0.2);
+      color: var(--text-color) !important;
+      /* ← THIS is what you want */
+    }
+
+    h1.three-d-title {
+      font-size: 2.5rem;
+      font-family: 'Open Sans', sans-serif;
+      font-weight: bold;
+      color: rgb(40, 130, 180);
+      letter-spacing: 1.5px;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.25);
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    h3 {
+      text-align: center;
+      font-family: 'Open Sans', sans-serif;
+      margin-top: 1rem;
+      margin-bottom: 0.5rem;
+      /* tighten the gap under "Ideas" */
+      font-size: 1.75rem;
+      font-weight: normal;
+      color: black;
+    }
+
+    .three-d-title-two {
+      font-size: 3rem;
+      /* or 2.5rem if you want it just slightly smaller */
+      font-family: 'Open Sans', sans-serif;
+      text-align: center;
+      margin-bottom: 2rem;
+      color: rgb(40, 130, 180);
+      letter-spacing: 1.5px;
+      font-weight: bold;
+      padding-left: 2rem;
+      padding-right: 2rem;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.25);
+    }
+
+    .wellness-page h3 {
+      font-size: 1.1rem;
+      /* or try 1rem if you want it even smaller */
+      color: black;
+      font-weight: normal;
+      margin-top: 1.5rem;
+      text-align: left;
+    }
+
+    p {
+      font-size: 1.1rem;
+      line-height: 1.6;
+      margin-bottom: 1.5rem;
+      text-align: left;
+    }
+
+    .button-black {
+      display: inline-block;
+      padding: 10px 20px !important;
+      background-color: #000 !important;
+      color: #fff !important;
+      font-size: 1.25rem !important;
+      font-weight: bold !important;
+      border: 1px solid white;
+      border-radius: 8px !important;
+      text-decoration: none !important;
+      cursor: pointer !important;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.2) !important;
+      transition: background-color 0.3s, transform 0.2s !important;
+      text-align: center !important;
+    }
+
+    .button-black:hover {
+      background-color: #222 !important;
+      transform: scale(1.03) !important;
+    }
+
+    .button-black:active {
+      transform: scale(0.98) !important;
+    }
+
+    .button:hover {
+      background-color: rgb(91, 5, 91) !important;
+      color: white !important;
+      transform: scale(1.03);
+    }
+
+    /* ---------- button purple ----------- */
+    .button-purple {
+      display: inline-block;
+      padding: 10px 15px !important;
+      background-color: rgb(221, 151, 221) !important;
+      color: black !important;
+      font-size: 1rem;
+      font-weight: bold;
+      border: 1px solid black !important;
+      border-radius: 8px;
+      text-decoration: none;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+      transition: background-color 0.3s, transform 0.2s;
+      text-align: center;
+    }
+
+    .button-purple:hover {
+      background-color: #983d9d !important;
+      transform: scale(1.03) !important;
+    }
+
+    .toolkit-entry button:not(.button-purple) {
+      background-color: #2988a7;
+      color: white;
+    }
+
+    #newIdea {
+      background-color: rgb(250, 230, 250) !important;
+      color: #4a154b;
+      /* text color */
+      padding: 0.75rem;
+      font-size: 1rem;
+      border-radius: 1rem;
+      border-color: black !important;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    /* Hover effect */
+   
+    /* --------------------- Mobile-safe media query -------------------- */
+    @media (max-width: 600px) {
+      .image-text-box {
+        width: 100%;
+        max-width: 100%;
+        margin-left: 0;
+        margin-right: 0;
+        border-radius: 0;
+        padding: 1rem 0.75rem;
+        text-align: left;
+        /* optional: center if you prefer */
+      }
+
+      .hero-image {
+        width: 100%;
+        height: auto;
+        display: block;
+        margin: 0 auto;
+      }
+
+      .hero-caption,
+      .image-text-box p {
+        font-size: 1rem;
+        line-height: 1.4;
+      }
+    }
+
+    .container {
+      padding: 1rem;
+      margin: 0 auto;
+      width: 95vw;
+      max-width: 600px;
+      box-sizing: border-box;
+    }
+
+    body {
+      overflow-x: hidden;
+    }
+
+/* ------------- new updated style.css ----------- */
+/* Make the 💖 list toggling purely CSS-based */
+.feel-good-content { display: none; }
+.feel-good-content.open { display: block; }
+
+/* Either hover the individual idea cards */
+#toolkitList .idea-item:hover {
+  background-color: rgba(255,255,255,.95);
+  transform: translateY(-1px);
+  transition: background-color .2s, transform .2s;
+}
+
+h3 {
+  color: white;
+  font-size: 19px;
+}
+
+/* ==================== safari safe + add buttons =================== */ 
+.idea-item   { list-style: none; margin: .5rem 0; }
+.idea-chip   { display:flex; align-items:center; gap:.5rem; }
+.idea-remove { background:none; border:0; font-size:1rem; cursor:pointer; }
+
+input, textarea, select {
+  color:#111 !important;
+  -webkit-text-fill-color:#111 !important; /* Safari/Chrome internal text */
+  caret-color:#111;
+}
+
+/* ============================ move 'x' to center/ right ====================== */ 
+/* Center the delete X vertically on the right, inside each idea card */
+#toolkitList .idea-item{
+  display: flex;
+  align-items: center;          /* vertical centering */
+  justify-content: space-between;
+  position: relative;
+  margin: .4rem auto;
+  padding: .6rem .9rem;         /* even padding */
+  max-width: 600px;
+  border-radius: 12px;
+  background: rgba(255,255,255,.9);
+  box-shadow: 0 2px 6px rgba(0,0,0,.08);
+}
+
+#toolkitList .idea-text{
+  flex: 1 1 auto;
+  padding-right: .75rem;        /* space before the X */
+  color: #111;
+}
+
+#toolkitList .idea-del{
+  appearance: none;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  font-size: 1.15rem;
+  line-height: .01;
+  padding: .01rem .01rem;        /* touch target padding */
+
+}
+
+#toolkitList .idea-del:active{ transform: scale(.95); }
+
+/* ================= register css add ons ================ */
+  .legal-footer {
+    text-align: center;
+    font-size: 0.9rem;
+    margin-top: 8px;
+    color: var(--text-color) !important; /* NEW: match theme text color */
+  }
+  .legal-footer a {
+    color: inherit;                 /* NEW: use same color as parent */
+    text-decoration: underline;
+  }
+
+  /* keep content clear of the fixed bottom nav (about ~6rem tall) */
+  .page-wrapper { padding-bottom: 6.5rem !important; }
+
+  /* make the Privacy link visible + themed and keep it above nav */
+  .legal-footer {
+    text-align: center;
+    font-size: 0.9rem;
+    margin: 0.5rem 0 6.5rem !important; /* push it above the nav */
+    color: var(--text-color) !important;
+  }
+  .legal-footer a { color: inherit; text-decoration: underline; }
+
+/* ================= saving offline =================== */
+/* Offline/Sync toast */
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: 18px;
+    transform: translateX(-50%) translateY(16px);
+    min-width: 240px;
+    max-width: 92vw;
+    padding: 12px 16px;
+    border-radius: 12px;
+    background: rgba(0,0,0,.85);
+    color: #fff;
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 1.35;
+    box-shadow: 0 6px 20px rgba(0,0,0,.25);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .25s ease, transform .25s ease;
+    z-index: 9999;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+    pointer-events: auto;
+  }
+  .toast .small {
+    display: block;
+    font-weight: 500;
+    opacity: .85;
+    margin-top: 4px;
+  }
+</style>
+</head>
+
+<body id="pageBody">
+  <div class="page-wrapper">
+    <div class="container">
+      <h1 class="three-d-title">My Feel-Good Toolkit</h1>
+
+      <div class="feel-good-container">
+        <h3 style="color: var(--text-color); font-size: 2.0rem;">Ideas</h3>
+        <!-- make this a real button for Safari -->
+        <button class="dropdown-icon-btn" type="button" aria-controls="feelGoodList" aria-expanded="false"
+          onclick="toggleFeelGood()">💖</button>
+
+          <div id="feelGoodList" class="feel-good-content">
+            <table class="feel-good-chart">
+              <tbody>
+                <tr>
+                  <td role="button" tabindex="0" data-idea="Taking a walk outside" onclick="addIdeaFromList(event)">Taking a walk
+                    outside</td>
+                </tr>
+                <tr>
+                  <td role="button" tabindex="0" data-idea="Listening to music" onclick="addIdeaFromList(event)">Listening to
+                    music</td>
+                </tr>
+                <tr>
+                  <td role="button" tabindex="0" data-idea="A hot cup of cocoa in your favorite mug"
+                    onclick="addIdeaFromList(event)">A hot cup of cocoa in your favorite mug</td>
+                </tr>
+                <tr>
+                  <td role="button" tabindex="0" data-idea="Talk to a friend" onclick="addIdeaFromList(event)">Talk to a friend
+                  </td>
+                </tr>
+                <tr>
+                  <td role="button" tabindex="0" data-idea="Journal your thoughts" onclick="addIdeaFromList(event)">Journal your
+                    thoughts</td>
+                </tr>
+                <tr>
+                  <td role="button" tabindex="0" data-idea="Cuddle with a soft stuffed animal" onclick="addIdeaFromList(event)">
+                    Cuddle with a soft stuffed animal</td>
+                </tr>
+                <tr>
+                  <td role="button" tabindex="0" data-idea="Watch a comforting movie or show" onclick="addIdeaFromList(event)">
+                    Watch a comforting movie or show</td>
+                </tr>
+                <tr>
+                  <td role="button" tabindex="0" data-idea="Take a bubble bath" onclick="addIdeaFromList(event)">Take a bubble
+                    bath</td>
+                </tr>
+                <tr>
+                  <td role="button" tabindex="0" data-idea="Light a scented candle" onclick="addIdeaFromList(event)">Light a
+                    scented candle</td>
+                </tr>
+                <tr>
+                  <td role="button" tabindex="0" data-idea="Do deep breathing exercises" onclick="addIdeaFromList(event)">Do deep
+                    breathing exercises</td>
+                </tr>
+                <tr>
+                  <td role="button" tabindex="0" data-idea="Stretch your body" onclick="addIdeaFromList(event)">Stretch your body
+                  </td>
+                </tr>
+                <tr>
+                  <td role="button" tabindex="0" data-idea="Color in an adult coloring book" onclick="addIdeaFromList(event)">
+                    Color in an adult coloring book</td>
+                </tr>
+                <tr>
+                  <td role="button" tabindex="0" data-idea="Read a favorite book" onclick="addIdeaFromList(event)">Read a favorite
+                    book</td>
+                </tr>
+                <tr>
+                  <td role="button" tabindex="0" data-idea="Make a gratitude list" onclick="addIdeaFromList(event)">Make a
+                    gratitude list</td>
+                </tr>
+                <tr>
+                  <td role="button" tabindex="0" data-idea="Drink a glass of cold water" onclick="addIdeaFromList(event)">Drink a
+                    glass of cold water</td>
+                </tr>
+                <tr>
+                  <td role="button" tabindex="0" data-idea="Put on comfy clothes or pajamas" onclick="addIdeaFromList(event)">Put
+                    on comfy clothes or pajamas</td>
+                </tr>
+                <tr>
+                  <td role="button" tabindex="0" data-idea="Dance around your room" onclick="addIdeaFromList(event)">Dance around
+                    your room</td>
+                </tr>
+                <tr>
+                  <td role="button" tabindex="0" data-idea="Look at old happy photos" onclick="addIdeaFromList(event)">Look at old
+                    happy photos</td>
+                </tr>
+                <tr>
+                  <td role="button" tabindex="0" data-idea="Make a playlist of feel-good songs" onclick="addIdeaFromList(event)">
+                    Make a playlist of feel-good songs</td>
+                </tr>
+                <tr>
+                  <td role="button" tabindex="0" data-idea="Use a fidget toy or stress ball" onclick="addIdeaFromList(event)">Use
+                    a fidget toy or stress ball</td>
+                </tr>
+                <tr>
+                  <td role="button" tabindex="0" data-idea="Step outside and feel the sun" onclick="addIdeaFromList(event)">Step
+                    outside and feel the sun</td>
+                </tr>
+                <tr>
+                  <td role="button" tabindex="0" data-idea="Write a letter to your future self" onclick="addIdeaFromList(event)">
+                    Write a letter to your future self</td>
+                </tr>
+                <tr>
+                  <td role="button" tabindex="0" data-idea="Do a skincare routine" onclick="addIdeaFromList(event)">Do a skincare
+                    routine</td>
+                </tr>
+                <tr>
+                  <td role="button" tabindex="0" data-idea="Pet an animal (even a neighbor’s dog!)"
+                    onclick="addIdeaFromList(event)">Pet an animal (even a neighbor’s dog!)</td>
+                </tr>
+                <tr>
+                  <td role="button" tabindex="0" data-idea="Listen to a positive podcast" onclick="addIdeaFromList(event)">Listen
+                    to a positive podcast</td>
+                </tr>
+                <tr>
+                  <td role="button" tabindex="0" data-idea="Do a small craft or creative project"
+                    onclick="addIdeaFromList(event)">Do a small craft or creative project</td>
+                </tr>
+                <tr>
+                  <td role="button" tabindex="0" data-idea="Watch funny videos or memes" onclick="addIdeaFromList(event)">Watch
+                    funny videos or memes</td>
+                </tr>
+                <tr>
+                  <td role="button" tabindex="0" data-idea="Organize a tiny space (like a drawer)"
+                    onclick="addIdeaFromList(event)">Organize a tiny space (like a drawer)</td>
+                </tr>
+                <tr>
+                  <td role="button" tabindex="0" data-idea="Open a window and breathe deeply" onclick="addIdeaFromList(event)">
+                    Open a window and breathe deeply</td>
+                </tr>
+                <tr>
+                  <td role="button" tabindex="0" data-idea="Wrap yourself in a weighted blanket" onclick="addIdeaFromList(event)">
+                    Wrap yourself in a weighted blanket</td>
+                </tr>
+                <tr>
+                  <td role="button" tabindex="0" data-idea="Say affirmations out loud" onclick="addIdeaFromList(event)">Say
+                    affirmations out loud</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>          
+</div>
+      <div class="toolkit-entry">
+        <!-- turn input+button into a form so Safari handles keyboard + click the same way -->
+        <form id="ideaForm" novalidate>
+          <input type="text" id="newIdea" placeholder="Add your own feel-good idea..." autocomplete="off" />
+          <br>
+          <button class="button-purple" id="addIdeaBtn" type="button">➕ Add</button>
+        </form>  
+      </div>      
+
+      <div class="dreamy-box">
+        <h3 style="text-align:center;">💕 Your own comforting, grounding, or joyful ideas. 💕</h3>
+        <div id="toolkitList" class="toolkit-list"></div>
+      </div>
+    </div>
+  </div>
+  
+  <div style="text-align:center; margin-bottom: 8rem;">
+    <a href="toolkit-hub.html" class="button-black">← Back</a>
+  </div>
+
+  <div id="appToast" class="toast" role="status" aria-live="polite"></div>
+
+  <!-- ADDED: minimal, visible Privacy link (no other layout changes) -->
+  <div class="legal-footer" role="contentinfo">
+    View our <a href="privacy.html" rel="noopener">Privacy Policy</a>.
+  </div>
+
+  <footer class="bottom-nav">
+    <a href="index.html" class="nav-icon">🏠<span>Home</span></a>
+    <a href="toolkit-hub.html" class="nav-icon">🧰<span>Toolkit</span></a>
+    <a href="wellness.html" class="nav-icon">💖<span>Wellness</span></a>
+    <a href="pet.html" class="nav-icon">🐾<span>Pet</span></a>
+    <a href="important-numbers.html" class="nav-icon">🆘<span>Help</span></a>
+  </footer>
+
+  <!-- ================= page script ================ -->
+  <script type="module">
+    // --- Imports ---
+    import { auth, db } from "./firebase-init.js";
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import {
+      doc, getDoc, onSnapshot, collection, addDoc, deleteDoc,
+      query, orderBy, serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { initOutbox, queueOrWrite, flushOutbox } from "./outbox.js";  // ⬅️ include flushOutbox for "Synced!" toast
+
+    /* ---------- Tiny toast UI (auto-injected) ---------- */
+    function ensureToastUI() {
+      if (!document.getElementById("toast-style")) {
+        const style = document.createElement("style");
+        style.id = "toast-style";
+        style.textContent = `
+            .toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%) translateY(16px);
+              min-width:240px;max-width:92vw;padding:12px 16px;border-radius:12px;background:rgba(0,0,0,.85);
+              color:#fff;font-weight:600;font-size:14px;line-height:1.35;box-shadow:0 6px 20px rgba(0,0,0,.25);
+              opacity:0;pointer-events:none;transition:opacity .25s ease,transform .25s ease;z-index:9999}
+            .toast.show{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:auto}
+            .toast .small{display:block;font-weight:500;opacity:.85;margin-top:4px}
+          `;
+        document.head.appendChild(style);
+      }
+      if (!document.getElementById("appToast")) {
+        const div = document.createElement("div");
+        div.id = "appToast";
+        div.className = "toast";
+        div.setAttribute("role", "status");
+        div.setAttribute("aria-live", "polite");
+        document.body.appendChild(div);
+      }
+    }
+    function showToast(message, sub = "") {
+      ensureToastUI();
+      const el = document.getElementById("appToast");
+      el.innerHTML = sub ? `${message}<span class="small">${sub}</span>` : message;
+      el.classList.add("show");
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(() => el.classList.remove("show"), 2400);
+    }
+
+    // 🔧 One place to keep the shared sub-line so both paths match
+    const OFFLINE_SUB = "You can close the app anytime.";
+
+    /* ---------- Fast theme paint (avoid flash) ---------- */
+    (function preloadTheme() {
+      try {
+        const root = document.documentElement;
+        const userKey = localStorage.getItem("currentUser") || "anon";
+        const saved =
+          localStorage.getItem(userKey + ":themeClass") ||
+          localStorage.getItem("themeClass") ||
+          localStorage.getItem("themeClass:last");
+        if (!saved) return;
+        const keep = (root.className || "")
+          .split(/\s+/).filter(Boolean).filter(c => !c.startsWith("theme-"));
+        root.className = [...keep, saved].join(" ");
+      } catch { }
+    })();
+
+    /* ---------- Force SW to fetch fresh HTML/JS on Safari ---------- */
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistration().then(reg => reg?.update()).catch(() => { });
+    }
+
+    /* ---------- Utilities ---------- */
+    const reveal = () => {
+      const html = document.documentElement;
+      html.style.visibility = "visible";
+      html.setAttribute("data-ready", "1");
+    };
+
+    function syncMetaTheme() {
+      try {
+        const cs = getComputedStyle(document.documentElement);
+        const accent =
+          (cs.getPropertyValue('--accent-color') ||
+            cs.getPropertyValue('--accent') ||
+            '#6a5acd').trim() || '#6a5acd';
+        let meta = document.querySelector('meta[name="theme-color"]');
+        if (!meta) { meta = document.createElement('meta'); meta.name = 'theme-color'; document.head.appendChild(meta); }
+        meta.content = accent;
+      } catch { }
+    }
+
+    function applyThemeClass(themeClass) {
+      const root = document.documentElement;
+      const next = themeClass || "theme-original";
+      const keep = (root.className || "")
+        .split(/\s+/).filter(Boolean).filter(c => !c.startsWith("theme-"));
+      const curr = (root.className.match(/\btheme-[^\s]+/g) || [])[0];
+      if (curr === next) { syncMetaTheme(); return; }
+      root.className = [...keep, next].join(" ");
+      try {
+        const userKey = localStorage.getItem("currentUser") || "anon";
+        localStorage.setItem(userKey + ":themeClass", next);
+        localStorage.setItem("themeClass:last", next);
+        localStorage.setItem("themeClass", next);
+      } catch { }
+      syncMetaTheme();
+    }
+
+    // Correct page name:
+    const here = "toolkit.html";
+
+    const $ = (id) => document.getElementById(id);
+    const escapeHTML = (s = "") => String(s)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;").replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+
+    // Normalize idea text from DOM nodes (removes doubled spaces & trims)
+    const normalizeIdeaText = (t = "") => t.replace(/\s+/g, " ").trim();
+
+    /* ---------- DOM refs ---------- */
+    const listEl = $("toolkitList");
+    const inputEl = $("newIdea");
+    const formEl = $("ideaForm");
+    const addBtn = $("addIdeaBtn");
+    const feelEl = $("feelGoodList");
+    const feelBtn = document.querySelector(".dropdown-icon-btn");
+
+    if (feelBtn) {
+      feelBtn.type = "button";
+      feelBtn.setAttribute("aria-controls", "feelGoodList");
+      feelBtn.setAttribute("aria-expanded", "false");
+    }
+
+    // Keyboard add
+    inputEl?.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") { e.preventDefault(); addIdea(); }
+    });
+    // Form submit (Enter)
+    formEl?.addEventListener("submit", (e) => { e.preventDefault(); addIdea(); });
+    // Explicit click (prevents Safari reload quirks)
+    addBtn?.addEventListener("click", (e) => { e.preventDefault(); addIdea(); });
+
+    /* ---------- Feel-good panel helpers ---------- */
+    function closeFeelGood() { if (feelEl) feelEl.classList.remove("open"); if (feelBtn) feelBtn.setAttribute("aria-expanded", "false"); }
+    function toggleFeelGood() {
+      if (!feelEl) return;
+      const nowOpen = feelEl.classList.toggle("open");
+      if (feelBtn) feelBtn.setAttribute("aria-expanded", nowOpen ? "true" : "false");
+    }
+    window.toggleFeelGood = toggleFeelGood;
+
+    document.addEventListener("click", (e) => {
+      if (!feelEl || !feelEl.classList.contains("open")) return;
+      const inside = feelEl.contains(e.target);
+      const onBtn = e.target.closest && e.target.closest(".dropdown-icon-btn");
+      if (!inside && !onBtn) closeFeelGood();
+    });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeFeelGood(); });
+
+    /* ---------- Ideas CRUD ---------- */
+    let uid = null;
+    let adding = false; // prevent double adds if click+enter happen together
+
+    // Track if we queued anything this session; used to show "Synced!" only when relevant.
+    let hasQueuedSinceLastSync = false;
+
+    // The ONLY Firestore write function for this page.
+    async function uploadToolkitIdea(payload) {
+      await addDoc(collection(db, "users", uid, "ideas"), {
+        text: payload.text,
+        createdAt: serverTimestamp(),
+        source: payload.source || "custom"
+      });
+    }
+
+    async function addIdea() {
+      if (!uid) { location.replace("login.html?next=" + encodeURIComponent(here)); return; }
+      const text = (inputEl?.value || "").trim();
+      if (!text || adding) return;
+      try {
+        adding = true;
+        const mode = await queueOrWrite({ kind: "toolkit", text, source: "custom" });
+        if (inputEl) { inputEl.value = ""; inputEl.focus(); }
+        if (mode === "queued") {
+          hasQueuedSinceLastSync = true;
+          showToast("Saved offline — will sync", OFFLINE_SUB);
+        } else {
+          showToast("Saved");
+        }
+      } catch (err) {
+        console.error("[toolkit] addIdea failed:", err);
+        alert("Couldn't save that idea. Please try again.");
+      } finally {
+        adding = false;
+      }
+    }
+
+    async function addIdeaFromList(ev) {
+      if (!uid) { location.replace("login.html?next=" + encodeURIComponent(here)); return; }
+      ev?.preventDefault?.();
+
+      // Prefer clean text from data-idea="…", otherwise fall back to textContent
+      const raw = ev?.currentTarget?.dataset?.idea ??
+        ev?.target?.dataset?.idea ??
+        ev?.currentTarget?.textContent ??
+        ev?.target?.textContent ?? "";
+      const t = normalizeIdeaText(raw);
+      if (!t) return;
+
+      try {
+        const mode = await queueOrWrite({ kind: "toolkit", text: t, source: "preset" });
+        closeFeelGood();
+        if (mode === "queued") {
+          hasQueuedSinceLastSync = true;
+          showToast("Saved offline — will sync", OFFLINE_SUB);   // ⬅️ now matches manual add
+        } else {
+          showToast("Saved");
+        }
+      } catch (err) {
+        console.error("[toolkit] add from list failed:", err);
+        alert("Couldn't add that item. Please try again.");
+      }
+    }
+
+    async function deleteIdea(id) {
+      if (!uid || !id) return;
+      try { await deleteDoc(doc(db, "users", uid, "ideas", id)); }
+      catch (err) {
+        console.error("[toolkit] delete failed:", err);
+        alert("Delete failed. Try again.");
+      }
+    }
+
+    window.addIdeaFromList = addIdeaFromList;
+    window.deleteIdea = deleteIdea;
+
+    function renderIdeas(snap) {
+      if (!listEl) return;
+      const out = [];
+      snap.forEach((d) => {
+        const data = d.data() || {};
+        out.push(
+          '<div class="idea-item">' +
+          '<span class="idea-text">' + escapeHTML(data.text || "") + '</span>' +
+          '<button class="idea-del" aria-label="Delete idea" onclick="deleteIdea(\'' + d.id + '\')">❌</button>' +
+          '</div>'
+        );
+      });
+      listEl.innerHTML = out.join("") ||
+        '<p style="opacity:.85;color:#fff;text-align:center">No ideas yet — add one above 💡</p>';
+    }
+
+    /* ---------- Auth + theme + ideas ---------- */
+    let unsubTheme = null, unsubIdeas = null;
+
+    onAuthStateChanged(auth, async (user) => {
+      try { unsubTheme?.(); unsubIdeas?.(); } catch { }
+
+      if (!user) {
+        location.replace("login.html?next=" + encodeURIComponent(here));
+        return;
+      }
+
+      uid = user.uid;
+      try { localStorage.setItem("currentUser", uid); } catch { }
+
+      // Wire the outbox now that we know uid
+      initOutbox(() => uid, uploadToolkitIdea);
+
+      // first paint theme
+      try {
+        const firstSnap = await getDoc(doc(db, "users", uid));
+        if (firstSnap.exists()) applyThemeClass((firstSnap.data() || {}).themeClass || "theme-original");
+      } catch { }
+      reveal(); syncMetaTheme();
+
+      // live theme
+      unsubTheme = onSnapshot(
+        doc(db, "users", uid),
+        (s) => applyThemeClass((s.data() || {}).themeClass || "theme-original"),
+        () => applyThemeClass("theme-original")
+      );
+
+      // live ideas
+      const q = query(collection(db, "users", uid, "ideas"), orderBy("createdAt", "asc"));
+      unsubIdeas = onSnapshot(
+        q,
+        { includeMetadataChanges: true },
+        renderIdeas,
+        (err) => console.error("[toolkit] ideas snapshot error:", err)
+      );
+
+      // Try flushing any queued entries as soon as we know who the user is
+      flushOutbox();
+    });
+
+    // ---- Connectivity & SW wake-ups (toasts) ----
+    window.addEventListener("online", () => showToast("Back online", "Syncing any saved items…"));
+
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.addEventListener("message", async (ev) => {
+        if (ev.data && ev.data.type === "SYNC_OUTBOX") {
+          await flushOutbox();
+          if (hasQueuedSinceLastSync) {
+            showToast("All set", "Your offline items have synced.");
+            hasQueuedSinceLastSync = false;
+          }
+        }
+      });
+    }
+
+    // Safety net (offline/CDN)
+    setTimeout(() => {
+      if (document.documentElement.getAttribute("data-ready") !== "1") reveal();
+    }, 1200);
+  </script>  
+  
+</body>
+
+</html>

@@ -1,0 +1,463 @@
+<!-- ============ MAIN HUB : WELLNESS.HTML ========== -->
+<!DOCTYPE html>
+<html lang="en" data-ready="0">
+
+<head>
+  <script>
+    (function () {
+      const PUBLIC_PAGES = ["index.html", "important-numbers.html", "privacy.html", "login.html", "register.html"];
+      const path = location.pathname.split("/").pop() || "index.html";
+      if (PUBLIC_PAGES.includes(path)) return; // no-op on public pages
+
+      // Hide immediately to avoid UI flash on protected pages
+      document.documentElement.style.visibility = "hidden";
+
+      const goLogin = () => {
+        location.href = "login.html?next=" + encodeURIComponent(location.href);
+      };
+
+      // Try Firebase; fall back to a temporary session flag if needed
+      (async () => {
+        try {
+          const { getAuth, onAuthStateChanged } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js");
+          const { auth } = await import("./firebase-init.js");
+          onAuthStateChanged(auth, (user) => {
+            if (!user) return goLogin();
+            document.documentElement.style.visibility = "";
+            document.documentElement.setAttribute("data-ready", "1");
+          });
+        } catch (e) {
+          const authed = sessionStorage.getItem("fs_logged_in") === "1"; // temporary fallback
+          if (!authed) return goLogin();
+          document.documentElement.style.visibility = "";
+          document.documentElement.setAttribute("data-ready", "1");
+        }
+      })();
+    })();
+  </script>
+
+  <meta charset="UTF-8" />
+
+  <!-- At the top of delete-account.html <body> or in <head> -->
+  <script type="module">
+    import './firebase-init.js'; // ensures app/auth/db are initialized
+  </script>
+    
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>3-Sides Planner — WELLNESS HUB</title>
+
+  <!-- Require login for this page -->
+  <meta name="auth" content="required">
+
+  <!-- 1) FOUC guard -->
+  <style>
+    html:not([data-ready="1"]) {
+      visibility: hidden
+    }
+  </style>
+
+  <!-- 2) Base paint so browser bars and background are correct immediately -->
+  <style>
+    html,
+    body {
+      min-height: 100%;
+      margin: 0;
+      background: var(--bg-color, #fff) !important;
+      color: var(--text-color, #111) !important;
+    }
+  </style>
+
+  <!-- PWA + theme (will be live-updated to match your theme) -->
+  <!-- Absolute (good for GitHub Pages) -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#6a5acd">
+
+  <!-- Favicons -->
+  <link rel="icon" type="image/svg+xml" sizes="any" href="/3-sides-planner.io/favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/3-sides-planner.io/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/3-sides-planner.io/favicon-16.png">
+  <link rel="apple-touch-icon" href="/3-sides-planner.io/icon-192.png"> <!-- iOS Home screen -->
+
+  <!-- Fonts + CSS (non-blocking) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans&display=swap" rel="stylesheet">
+
+  <link rel="preload" href="style.css" as="style" onload="this.rel='stylesheet'">
+  <noscript>
+    <link rel="stylesheet" href="style.css">
+  </noscript>
+
+  <link rel="preload" href="mainTheme.css" as="style" onload="this.rel='stylesheet'">
+  <noscript>
+    <link rel="stylesheet" href="mainTheme.css">
+  </noscript>
+
+  <!-- Early Theme Boot: apply saved theme instantly + sync <meta name="theme-color"> -->
+  <script>
+    (function () {
+      try {
+        const root = document.documentElement;
+        const userKey = localStorage.getItem("currentUser") || "anon";
+        const savedTheme =
+          localStorage.getItem(userKey + ":themeClass") ||
+          localStorage.getItem("themeClass") ||
+          localStorage.getItem("themeClass:last") ||
+          "theme-original";
+
+        // keep non-theme classes; swap only theme-*
+        const keep = (root.className || "")
+          .split(/\s+/).filter(Boolean).filter(c => !c.startsWith("theme-"));
+        root.className = [...keep, savedTheme].join(" ");
+
+        let meta = document.querySelector('meta[name="theme-color"]');
+        if (!meta) { meta = document.createElement('meta'); meta.name = 'theme-color'; document.head.appendChild(meta); }
+        const cs = getComputedStyle(root);
+        meta.content = (cs.getPropertyValue('--accent-color') ||
+          cs.getPropertyValue('--accent') ||
+          '#6a5acd').trim() || '#6a5acd';
+      } catch { }
+    })();
+  </script>
+
+  <!-- SW + Auth gate (non-blocking) -->
+  <script src="sw-register.js" defer></script>
+  <script type="module" src="auth.js"></script>
+
+<!-- ================== wellness hub style ================== -->
+  <style>
+    body {
+      margin: 0 !important;
+      background: var(--bg-color) !important;
+      color: var(--text-color) !important;
+    }
+
+    .toolkit-container {
+      max-width: 500px;
+      margin: 0 auto;
+      background: var(--bg-color);
+      padding: 1rem;
+      text-align: center;
+    }
+
+    .toolkit-intro {
+      color: var(--text-color) !important;
+    }
+
+    /* Make full-width separators actually full width */
+    .torn-paper-divider {
+      width: 100%;
+      min-height: 60px;
+      /* adjust to your asset */
+      /* background: your image/gradient here if not in style.css */
+    }
+
+ /* --------------------------Theme Customization ------------------ */
+    #authControls {
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    #authControls p {
+      margin: 0;
+      padding: 0;
+    }
+
+    .page-header {
+      margin-top: 0;
+      padding-top: 0;
+    }
+
+    body {
+      margin-top: 0;
+      background-color: var(--bg-color) !important;
+      color: var(--text-color) !important;
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+
+    .toolkit-container {
+      max-width: 500px;
+      margin: 0 auto;
+      background: var(--bg-color);
+      padding: 1rem;
+      text-align: center;
+    }
+
+    .toolkit-intro {
+      text-align: center;
+      margin-top: -1rem;
+      margin-bottom: 2rem;
+      color: var(--text-color) !important;
+    }
+
+    .button-purple {
+      display: inline-block;
+      padding: 10px 20px;
+      background-color: rgb(221, 151, 221);
+      color: black;
+      font-size: 1rem;
+      font-weight: bold;
+      border: 1px solid black;
+      border-radius: 8px;
+      text-decoration: none;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(255, 255, 255, .2);
+      transition: background-color .3s, transform .2s;
+      text-align: center;
+    }
+
+    .button-purple:hover {
+      background-color: #983d9d !important;
+      transform: scale(1.03);
+    }
+
+    /* Sparkles layer */
+    #sparkleWrapper {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .sparkle {
+      position: absolute;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255, 255, 255, .9) 0%, transparent 70%);
+      opacity: 0;
+      animation: spark 3.6s infinite ease-in-out;
+      box-shadow: 0 0 6px rgba(255, 255, 255, .5)
+    }
+
+    @keyframes spark {
+
+      0%,
+      100% {
+        opacity: .08;
+        transform: scale(.6)
+      }
+
+      50% {
+        opacity: 1;
+        transform: scale(1.25)
+      }
+    }
+
+    @media (prefers-reduced-motion:reduce) {
+      .sparkle {
+        animation: none;
+        opacity: .18
+      }
+    }
+
+    /* Critical first paint: match default theme */
+    html {
+      background: #ffffff;
+      color: purple;
+    }
+
+    body {
+      background: inherit;
+      color: inherit;
+      margin: 0;
+    }
+
+    /* Mobile adjustments */
+    @media (max-width: 600px) {
+      body {
+        padding: 0 1rem;
+        box-sizing: border-box;
+      }
+
+      .image-text-box {
+        width: 100%;
+        max-width: 100%;
+        margin-left: 0;
+        margin-right: 0;
+        border-radius: 0;
+        padding: 1rem .75rem;
+        text-align: left;
+      }
+
+      .hero-image {
+        width: 100%;
+        height: auto;
+        display: block;
+        margin: 0 auto;
+      }
+
+      .hero-caption,
+      .image-text-box p {
+        font-size: 1rem;
+        line-height: 1.4;
+      }
+    }
+
+/* =============== overrides ================ */
+html, body {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;   /* was center */
+}
+
+.full-bleed { 
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+}
+
+.torn-paper-divider {
+  height: 60px;
+  /* background: url(...) center/cover no-repeat;  or your gradient */
+}
+
+/* style.css */
+html:not([class*="theme-"]) {
+  --bg-color:#fff;
+  --text-color:purple;
+  --accent-color:#87ceeb;
+}
+/* Avoid redefining these on :root later, or they’ll override themes */
+
+/* Critical first paint: match default theme */
+html { background:#ffffff; color: purple; }   /* <- hard-coded */
+body { background: inherit; color: inherit; }
+
+/* Put in style.css (global) or inside wellness.html <style> */
+html, body { display:block; } /* simplest fix */
+
+/* make the Privacy link visible + themed and keep it above nav */
+  .legal-footer {
+    text-align: center;
+    font-size: 0.9rem;
+    margin: 0.5rem 0 6.5rem !important; /* push it above the nav */
+    color: var(--text-color) !important;
+  }
+  .legal-footer a { color: inherit; text-decoration: underline; }
+</style>
+
+</head>
+
+<body>
+  <!-- Sparkles container -->
+  <div class="full-page-sparkle-wrapper" id="sparkleWrapper"></div>
+
+  <div class="torn-paper-divider"></div>
+  <div class="toolkit-container">
+    <h2 class="three-d-title">My Wellness HUB</h2>
+    <br>
+    <p class="toolkit-intro">
+      Here you’ll find everything that helps you build, track, and protect your wellness plan.
+    </p>
+    <div class="button-row">
+      <a class="button-purple" href="wellnessPlan.html">✨ My Wellness Plan</a>
+      <a class="button-purple" href="letter.html">💌 Letter to Future Me</a>
+      <a class="button-purple" href="support.html">🫂 Support People</a>
+    </div>
+  </div>
+  <div class="torn-paper-divider"></div>
+
+  <br><br>
+
+<!-- ADDED: minimal, visible Privacy link (no other layout changes) -->
+<div class="legal-footer" role="contentinfo">
+  View our <a href="privacy.html" rel="noopener">Privacy Policy</a>.
+</div>
+
+  <footer class="bottom-nav">
+    <a href="index.html" class="nav-icon">🏠<span>Home</span></a>
+    <a href="toolkit-hub.html" class="nav-icon">🧰<span>Toolkit</span></a>
+    <a href="wellness.html" class="nav-icon">💖<span>Wellness</span></a>
+    <a href="pet.html" class="nav-icon">🐾<span>Pet</span></a>
+    <a href="important-numbers.html" class="nav-icon">🆘<span>Help</span></a>
+  </footer>
+
+  <!-- ======================= SCRIPT ======================= -->
+  <script type="module">
+    import { auth, db } from "./firebase-init.js";
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { doc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const html = document.documentElement;
+    const show = () => { html.setAttribute("data-ready", "1"); html.style.visibility = "visible"; };
+
+    function syncMetaTheme() {
+      try {
+        const cs = getComputedStyle(document.documentElement);
+        const accent = (cs.getPropertyValue('--accent-color') || cs.getPropertyValue('--accent') || '#6a5acd').trim() || '#6a5acd';
+        const meta = document.querySelector('meta[name="theme-color"]');
+        if (meta) meta.content = accent;
+      } catch { }
+    }
+
+    function applyThemeClass(themeClass) {
+      const root = document.documentElement;
+      const next = themeClass || "theme-original";
+
+      // keep non-theme classes; swap only theme-*
+      const keep = (root.className || "")
+        .split(/\s+/).filter(Boolean).filter(c => !c.startsWith("theme-"));
+
+      const curr = (root.className.match(/\btheme-[^\s]+/g) || [])[0];
+      if (curr === next) { syncMetaTheme(); return; }
+
+      root.className = [...keep, next].join(" ");
+
+      // persist for next boot (per-user if available)
+      try {
+        const userKey = localStorage.getItem("currentUser") || "anon";
+        localStorage.setItem(userKey + ":themeClass", next);
+        localStorage.setItem("themeClass:last", next);
+      } catch { }
+
+      syncMetaTheme();
+    }
+
+    function createFullPageSparkles(count = 100) {
+      const container = document.getElementById('sparkleWrapper');
+      if (!container) return;
+      for (let i = 0; i < count; i++) {
+        const s = document.createElement('div'); s.className = 'sparkle';
+        s.style.top = `${Math.random() * 100}vh`;
+        s.style.left = `${Math.random() * 100}vw`;
+        s.style.animationDelay = `${Math.random() * 3}s`;
+        s.style.animationDuration = `${2 + Math.random() * 2.5}s`;
+        container.appendChild(s);
+      }
+    }
+
+    // Auth + theme: auth.js will redirect if not signed in because of <meta name="auth" content="required">
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) return; // gate will send to login.html
+
+      const userRef = doc(db, "users", user.uid);
+
+      // First paint: fetch once so we can reveal ASAP with the correct theme
+      try {
+        const snap = await getDoc(userRef);
+        if (snap.exists()) applyThemeClass(snap.data().themeClass || "theme-original");
+      } catch { }
+      show();
+
+      // Live updates (does not block reveal)
+      onSnapshot(userRef, (s) => {
+        if (s.exists()) applyThemeClass(s.data().themeClass || "theme-original");
+      });
+
+      // Gentle sparkle start after paint
+      requestAnimationFrame(() => createFullPageSparkles(120));
+    });
+
+    // BFCache: if restored from cache, re-show instantly
+    window.addEventListener("pageshow", (e) => { if (e.persisted) show(); });
+
+    // Offline/blocked safety net
+    setTimeout(() => { if (html.getAttribute("data-ready") !== "1") show(); }, 1500);
+  </script>
+  
+</body>
+
+</html>

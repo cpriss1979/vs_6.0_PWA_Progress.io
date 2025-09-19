@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en" data-ready="0">
+
+<head>
+  <!-- At the top of delete-account.html <body> or in <head> -->
+  <script type="module">
+    import './firebase-init.js'; // ensures app/auth/db are initialized
+  </script>
+    
+  <!-- 1) FOUC guard -->
+  <style>
+    html:not([data-ready="1"]) {
+      visibility: hidden
+    }
+  </style>
+
+  <!-- 2) Base paint so UI bars don’t flash wrong colors -->
+  <style>
+    html,
+    body {
+      min-height: 100%;
+      margin: 0;
+      background: var(--bg-color, #fff) !important;
+      color: var(--text-color, #111) !important
+    }
+  </style>
+
+  <!-- Meta -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>3-Sides Planner — BADGE WALL</title>
+  <meta name="description" content="Your earned badges and milestones." />
+  <meta name="theme-color" content="#6a5acd">
+
+  <!-- PWA -->
+  <!-- Absolute (good for GitHub Pages) -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icon-192.png">
+
+  <!-- Favicons -->
+  <link rel="icon" type="image/svg+xml" sizes="any" href="/3-sides-planner.io/favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/3-sides-planner.io/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/3-sides-planner.io/favicon-16.png">
+  <link rel="apple-touch-icon" href="/3-sides-planner.io/icon-192.png"> <!-- iOS Home screen -->
+
+  <!-- Fonts + global CSS -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="mainTheme.css">
+
+  <!-- Noscript fallback -->
+  <noscript>
+    <style>
+      html {
+        visibility: visible
+      }
+    </style>
+  </noscript>
+
+  <!-- Early Theme Boot -->
+  <script>
+    (function () {
+      try {
+        const root = document.documentElement;
+        const userKey = localStorage.getItem("currentUser") || "anon";
+        const savedTheme =
+          localStorage.getItem(userKey + ":themeClass") ||
+          localStorage.getItem("themeClass") ||
+          localStorage.getItem("themeClass:last") ||
+          "theme-original";
+        const keep = (root.className || "").split(/\s+/).filter(Boolean).filter(c => !c.startsWith("theme-"));
+        root.className = [...keep, savedTheme].join(" ");
+        const meta = document.querySelector('meta[name="theme-color"]') || (() => { const m = document.createElement('meta'); m.name = 'theme-color'; document.head.appendChild(m); return m; })();
+        const cs = getComputedStyle(root);
+        meta.content = (cs.getPropertyValue('--accent-color') || cs.getPropertyValue('--accent') || '#6a5acd').trim() || '#6a5acd';
+      } catch { }
+    })();
+  </script>
+
+  <!-- Service worker -->
+  <script src="sw-register.js"></script>
+
+  <!-- BFCache reveal -->
+  <script>
+    (function () {
+      const html = document.documentElement;
+      const reveal = () => { html.setAttribute("data-ready", "1"); html.style.visibility = "visible"; }
+      addEventListener("pageshow", e => { if (e.persisted) reveal() });
+      addEventListener("pagehide", () => { html.removeAttribute("data-ready") });
+      setTimeout(() => { if (html.getAttribute("data-ready") !== "1") reveal(); }, 1500);
+    })();
+  </script>
+
+  <!-- Page-local styles -->
+  <style>
+    body {
+      font-family: 'Quicksand', sans-serif;
+      margin: 0;
+      padding: 2rem;
+      background: #0a0d2b;
+      color: #fff
+    }
+
+    h1 {
+      margin: 0 0 1rem;
+      text-align: center
+    }
+
+    .badge-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      max-width: 680px;
+      margin: 0 auto
+    }
+
+    @media (max-width:460px) {
+      .badge-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr))
+      }
+    }
+
+    .badge {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: .45rem
+    }
+
+    .icon {
+      width: 84px;
+      height: 84px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 38px;
+      user-select: none;
+      background: radial-gradient(70% 70% at 30% 30%, hsl(var(--h, 210) 80% 70%) 0%, hsl(var(--h, 210) 80% 55%) 45%, hsl(var(--h, 210) 80% 45%) 100%);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, .25), inset 0 0 18px rgba(255, 255, 255, .25);
+      border: 3px solid rgba(255, 255, 255, .7);
+      transition: transform .12s ease, filter .2s ease, opacity .2s ease;
+    }
+
+    .badge.locked .icon {
+      filter: grayscale(1);
+      opacity: .5;
+      background: linear-gradient(135deg, rgba(255, 255, 255, .08), rgba(255, 255, 255, .03));
+      border-color: rgba(255, 255, 255, .35)
+    }
+
+    .badge .label {
+      font-size: .85rem;
+      opacity: .95;
+      text-align: center;
+      max-width: 112px
+    }
+
+    .badge:not(.locked) .label {
+      color: #fff
+    }
+
+    .badge.locked .label {
+      color: rgba(255, 255, 255, .7)
+    }
+
+    .icon:hover {
+      transform: translateY(-2px) scale(1.03)
+    }
+  </style>
+</head>
+
+<body>
+  <h1>🏅 My Badges</h1>
+  <div id="badgeGrid" class="badge-grid"></div>
+
+  <script type="module">
+    import { auth, db } from "./firebase-init.js";
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import {
+      doc, getDoc, setDoc, updateDoc, arrayUnion, onSnapshot, collection,
+      enableIndexedDbPersistence
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    // Optional offline (ignore multi-tab errors)
+    try { await enableIndexedDbPersistence(db); } catch { }
+
+    // ---- catalog: ALL badges you want visible here ----
+    const CATALOG = [
+      // app-wide
+      { id: "login", label: "First Login", emoji: "🔑", hue: 200 },
+      { id: "themeChange", label: "Changed Theme", emoji: "🎨", hue: 280 },
+      { id: "feelgood1", label: "1 Feel-Good Idea", emoji: "💡", hue: 50 },
+      { id: "firstJournal", label: "First Journal", emoji: "📝", hue: 300 },
+      { id: "wellnessPlan1", label: "Wellness Plan Created", emoji: "🧭", hue: 160 },
+      { id: "letter1", label: "Letter to Future Me", emoji: "💌", hue: 340 },
+
+      // pet-care streaks
+      { id: "pawprint", label: "First Pet Care", emoji: "🐾", hue: 120 },
+      { id: "flower", label: "1 Week", emoji: "🌸", hue: 330 },
+      { id: "gem", label: "1 Month", emoji: "💎", hue: 200 },
+      { id: "crown", label: "3 Months", emoji: "👑", hue: 45 },
+      { id: "halfyear", label: "6 Months", emoji: "🏆", hue: 15 },
+    ];
+
+    // build the wall
+    const grid = document.getElementById("badgeGrid");
+    function renderCatalog() {
+      grid.innerHTML = CATALOG.map(b => `
+        <div class="badge locked" data-badge="${b.id}">
+          <div class="icon" style="--h:${b.hue}">${b.emoji}</div>
+          <div class="label">${b.label}</div>
+        </div>
+      `).join("");
+    }
+    renderCatalog();
+
+    // apply unlocked visuals
+    function updateUnlocked(ids) {
+      const set = new Set(ids);
+      grid.querySelectorAll(".badge").forEach(el => {
+        el.classList.toggle("locked", !set.has(el.dataset.badge));
+      });
+    }
+
+    // helper to award from console if you want: award('login')
+    async function award(uid, id) {
+      const ref = doc(db, "users", uid);
+      try { await updateDoc(ref, { badges: arrayUnion(id) }); }
+      catch { await setDoc(ref, { badges: [id] }, { merge: true }); }
+    }
+    window.award = (id) => auth.currentUser && award(auth.currentUser.uid, id);
+
+    // combine root array + subcollection {users/{uid}/badges}
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) { location.replace("login.html?next=" + encodeURIComponent("badge.html")); return; }
+
+      const userRef = doc(db, "users", user.uid);
+      try { const s = await getDoc(userRef); if (!s.exists()) await setDoc(userRef, { badges: [] }, { merge: true }); } catch { }
+
+      let rootEarned = new Set(), subEarned = new Set();
+      const apply = () => updateUnlocked(new Set([...rootEarned, ...subEarned]));
+
+      onSnapshot(userRef, snap => {
+        const arr = Array.isArray(snap.data()?.badges) ? snap.data().badges : [];
+        rootEarned = new Set(arr);
+        apply();
+      });
+
+      onSnapshot(collection(db, "users", user.uid, "badges"), qs => {
+        subEarned = new Set();
+        qs.forEach(docSnap => subEarned.add(docSnap.id));
+        apply();
+      });
+
+      // reveal page
+      document.documentElement.setAttribute("data-ready", "1");
+      document.documentElement.style.visibility = "visible";
+    });
+  </script>
+</body>
+
+</html>

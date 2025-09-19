@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <script>
+    (function () {
+      const PUBLIC_PAGES = ["index.html", "important-numbers.html", "privacy.html", "login.html", "register.html"];
+      const path = location.pathname.split("/").pop() || "index.html";
+      if (PUBLIC_PAGES.includes(path)) return; // no-op on public pages
+
+      // Hide immediately to avoid UI flash on protected pages
+      document.documentElement.style.visibility = "hidden";
+
+      const goLogin = () => {
+        location.href = "login.html?next=" + encodeURIComponent(location.href);
+      };
+
+      // Try Firebase; fall back to a temporary session flag if needed
+      (async () => {
+        try {
+          const { getAuth, onAuthStateChanged } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js");
+          const { auth } = await import("./firebase-init.js");
+          onAuthStateChanged(auth, (user) => {
+            if (!user) return goLogin();
+            document.documentElement.style.visibility = "";
+            document.documentElement.setAttribute("data-ready", "1");
+          });
+        } catch (e) {
+          const authed = sessionStorage.getItem("fs_logged_in") === "1"; // temporary fallback
+          if (!authed) return goLogin();
+          document.documentElement.style.visibility = "";
+          document.documentElement.setAttribute("data-ready", "1");
+        }
+      })();
+    })();
+  </script>
+
+  <!-- Charset first -->
+  <meta charset="UTF-8" />
+
+  <!-- At the top of delete-account.html <body> or in <head> -->
+  <script type="module">
+    import './firebase-init.js'; // ensures app/auth/db are initialized
+  </script>
+    
+  <!-- Safari/iOS friendly viewport -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+
+  <!-- Title + font (kept) -->
+  <title>3-Sides Planner — THEME</title>
+  <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap" rel="stylesheet">
+
+  <!-- Public page flag (prevents auth.js from redirecting) -->
+  <meta name="auth" content="public">
+
+  <!-- Your stylesheets (unchanged) -->
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="mainTheme.css">
+
+  <!-- PWA manifest with cache-buster -->
+  <!-- Absolute (good for GitHub Pages) -->
+  <link rel="manifest" href="manifest.webmanifest">
+  
+  <!-- Register SW without blocking first paint -->
+  <script src="sw-register.js" defer></script>
+
+  <!-- Favicons -->
+  <link rel="icon" type="image/svg+xml" sizes="any" href="/3-sides-planner.io/favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/3-sides-planner.io/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/3-sides-planner.io/favicon-16.png">
+  <link rel="apple-touch-icon" href="/3-sides-planner.io/icon-192.png"> <!-- iOS Home screen -->
+
+  <!-- NOTE: do NOT hide <html> on public pages -->
+  <!-- (If you keep html{visibility:hidden} below for FOUC control, also add the tiny unlock script at the bottom) -->
+
+<!-- ================= Main html style ===============-->
+  <style>
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      width: 100vw;
+      min-height: 100vh;
+      overflow-x: hidden;
+      overflow-y: auto;
+      scroll-behavior: smooth;
+    }
+
+    .theme-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 2rem;
+      padding: 1rem;
+      /* ← This adds mobile padding */
+      max-width: 1000px;
+      margin: auto;
+      box-sizing: border-box;
+    }
+
+    .theme-card {
+      height: 420px;
+      /* ← Bigger vertical space */
+      background: rgb(250, 230, 250) !important;
+      border-radius: 1.5rem;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.15);
+      text-align: center;
+      font-size: 1.8rem !important;
+      /* ← Bigger text */
+      line-height: 5;
+      box-sizing: border-box;
+      transition: transform 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      width: 100%;
+      max-width: unset;
+      /* ← remove max-width limit */
+      padding: 2.5rem;
+      border-bottom: 2px solid #eee;
+    }
+
+    .theme-card:hover {
+      transform: scale(1.03);
+    }
+
+    .theme-card h3 {
+      font-size: 2.5rem;
+      color: #444;
+    }
+
+    .theme-gallery {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 2.5rem;
+      padding: 0 3rem;
+      /* ← keep this one */
+      width: 100vw;
+      box-sizing: border-box;
+    }
+
+    .theme-card button {
+      background-color: #604bb3;
+      color: white;
+      border: none;
+      padding: 1rem 2rem;
+      font-size: 1.4rem;
+      border-radius: 2rem;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    .theme-card button:hover {
+      background-color: #983d9d;
+    }
+
+    /* 📱 Mobile View */
+    @media (max-width: 600px) {
+      .theme-gallery {
+        grid-template-columns: 1fr;
+      }
+
+      .theme-card {
+        height: auto;
+        /* Let it shrink naturally */
+        padding: 1.5rem;
+        font-size: 1.3rem;
+      }
+
+      .theme-card h3 {
+        font-size: 1.4rem;
+      }
+
+      .theme-card button {
+        font-size: 1.2rem;
+        padding: 0.8rem 1.5rem;
+      }
+    }
+
+    /* -------------------- Back to App ---------------- */
+    .backToApp {
+      display: inline-block;
+      margin: 8rem auto;
+      background-color: #000 !important;
+      /* black background */
+      color: #fff !important;
+      /* White text */
+      font-size: 1.4rem;
+      /* Cleaned and corrected */
+      font-weight: 1000;
+      border: 2px solid white;
+      border-radius: 16px;
+      /* exaggerate the curve */
+      text-decoration: none;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+      /* Soft white-ish glow */
+      transition: background-color 0.3s, transform 0.2s;
+      text-align: center;
+
+    }
+
+    .backToApp:hover {
+      background-color: #222 !important;
+      /* Darker hover */
+      color: #fff !important;
+      transform: scale(1.03);
+    }
+
+    .backToApp:active {
+      transform: scale(0.98);
+    }
+
+    /* ---------------- Affermations -------------- */
+    .affirmation-popup {
+      position: fixed;
+      bottom: 85%;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #ffeef8;
+      color: #4a004e;
+      padding: 1.5rem 2rem;
+      /* ⬅️ more padding helps text breathe */
+      font-size: 2.6rem;
+      font-weight: bold;
+      border-radius: 1rem;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+      max-width: 90vw;
+      /* ⬅️ slightly wider for safer wrapping */
+      width: max-content;
+      /* ⬅️ works better than fit-content for wrapped text */
+      min-width: 250px;
+      /* ⬅️ prevents weird shrinking on short affirmations */
+      word-wrap: break-word;
+      /* ⬅️ forces long words to wrap */
+      white-space: normal;
+      text-align: center;
+      line-height: 1.5;
+      z-index: 9999;
+      transition: opacity 1s ease;
+      opacity: 1;
+    }
+
+    .theme-page .wrap {
+      background: #fff;
+      border-radius: 16px;
+      padding: 12px;
+    }
+
+    /* -------------------- NAV ICON CONSISTENCY -------------------- */
+
+    /* ----------------- override styles ------------*/
+    /* List layout */
+    .toolkit-list {
+      display: flex;
+      flex-direction: column;
+      gap: .5rem;
+    }
+
+    /* Default card look (works on light backgrounds) */
+    .idea-item {
+      position: relative;
+      padding: .6rem 2.2rem .6rem .9rem;
+      border-radius: 12px;
+      background: rgba(0, 0, 0, .06);
+      border: 1px solid rgba(0, 0, 0, .12);
+    }
+
+    /* When inside your dark “dreamy” section, use lighter translucent card */
+    .dreamy-box .idea-item {
+      background: rgba(255, 255, 255, .14);
+      border-color: rgba(255, 255, 255, .26);
+      color: #fff;
+      /* stay readable on dark bg */
+    }
+
+    /* Delete button */
+    .idea-item .idea-del {
+      position: absolute;
+      right: .4rem;
+      top: .4rem;
+      border: 0;
+      background: transparent;
+      cursor: pointer;
+      font-size: 1rem;
+      line-height: 1;
+    }
+
+    /* Feel-good dropdown show/hide */
+    .feel-good-content {
+      display: none;
+    }
+
+    .feel-good-content.open {
+      display: block;
+    }
+
+/* ====================== style overrides for theme.html ========================= */
+/* === Compact Theme Shop overrides (drop at very bottom of <style>) === */
+/* === Compact Theme Shop overrides (drop at very bottom of <style>) === */
+
+  /* Smaller page header */
+  .theme-size { font-size: 1rem !important; }
+  .theme-size h1 {
+    font-size: 3.6rem !important;
+    line-height: 1.2 !important;
+    margin: 1rem 0 .5rem !important;
+  }
+  
+  /* Always 2 cards per row; fix width/padding bloat */
+  .theme-gallery {
+    grid-template-columns: repeat(2, minmax(140px, 1fr)) !important;
+    gap: 22px !important;
+    padding: 0 8px !important;
+    width: 90% !important;   /* avoid 100vw overflow */
+    box-sizing: border-box !important;
+  }
+  
+  /* Compact card */
+  .theme-card {
+    height: auto !important;      /* was 420px */
+    padding:22px !important;     /* was 2.5rem */
+    font-size: 1rem !important;   /* was 1.8rem */
+    line-height: 1.2 !important;  /* was 5 */
+    border-radius: 12px !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,.12) !important;
+  }
+  
+  /* Card title + button smaller */
+  .theme-card h3 {
+    font-size: 1.05rem !important;
+    margin: 0 0 .5rem !important;
+    line-height: 1.2 !important;
+  }
+
+.theme-card button {
+  padding: 8px 12px !important;
+  font-size: .95rem !important;
+  border-radius: 12px !important;
+}
+  
+  /* Keep 2 columns even on phones (override your earlier media rule) */
+  @media (max-width: 600px) {
+    .theme-gallery {
+      grid-template-columns: repeat(2, minmax(140px, 1fr)) !important;
+    }
+  }
+
+  .backToApp {
+  display: inline-block;
+margin: 2rem auto;
+padding: 10px 20px;
+  background-color: #000 !important;  /* Black background */
+  color: #fff !important;             /* White text */
+  font-size: 1rem;
+  font-weight: 600;
+  border: 1px solid white;
+  border-radius: 8px;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.2); /* Soft white-ish glow */
+  transition: background-color 0.3s, transform 0.2s;
+  text-align: center;
+}
+
+/* ================== fix container alignment ===================== */
+/* Center the title + button with equal space from top/bottom */
+
+
+/* remove default margins so centering is true */
+.theme-card h3{ 
+  text-align: center !important;
+  margin: 0 0 .5rem 0 !important; 
+}
+.theme-card button{
+  margin: 0 !important;
+  align-self: center !important;
+}
+
+/* ====================== link to delete account ====================== */
+/* ============= account container ============= */
+.account-panel {
+    margin: 48px auto 18px;
+    max-width: 790px;
+    background: #8b1919;
+    border: 1px solid #eee;
+    padding: 14px 16px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.05);
+  }
+  /* ================ 'account' - heading ============ */
+  .account-panel h3 {
+    margin: 0 0 8px;
+    font-size: 1.75rem;
+    color: white;
+    font-size: bolder;
+  }
+  /* =============== signed in as (@email.com) ... manage profile, password, and deletion settings */
+.account-panel p {
+  margin: 0 0 12px;
+  color: rgba(152, 152, 207, 0.758);
+  font-weight: bold;
+  font-style: italic;
+}
+
+  .account-row {
+    display: flex;
+    gap: 0px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .btn-settings {
+    appearance: none;
+    border: 0;
+    padding: 10px 14px;
+    border-radius: 12px;
+    background: #111;
+    color: #fff;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .muted { color:#666; }
+
+  .h2 {
+    color: rgb(124, 124, 145);
+  }
+  
+  /* make the Privacy link visible + themed and keep it above nav */
+  .legal-footer {
+    text-align: center;
+    font-size: 0.9rem;
+    margin: 0.5rem 0 6.5rem !important; /* push it above the nav */
+    color: var(--text-color) !important;
+  }
+  .legal-footer a { color: inherit; text-decoration: underline; }
+</style>
+</head>
+
+<body>
+  <div class="theme-size">
+    <h1>Theme Shop</h1>
+    <div id="authControls" style="text-align:center; margin-top:1rem;"></div>
+  </div>
+  <div class="theme-gallery">
+    <!-- Yellow -->
+    <div class="theme-card">
+      <h3>Bingo Yellow</h3><button onclick="setTheme('bingo')">Apply</button>
+    </div>
+    <div class="theme-card">
+      <h3>Bumblebee Yellow</h3><button onclick="setTheme('bumblebee')">Apply</button>
+    </div>
+    <div class="theme-card">
+      <h3>Stella Peach</h3><button onclick="setTheme('peach')">Apply</button>
+    </div>
+
+    <!-- Red -->
+    <div class="theme-card">
+      <h3>Santafe Red</h3><button onclick="setTheme('arcade')">Apply</button>
+    </div>
+
+    <!-- Blues -->
+    <div class="theme-card">
+      <h3>Dolphin Blue</h3><button onclick="setTheme('dolphin')">Apply</button>
+    </div>
+    <div class="theme-card">
+      <h3>Moonlight Blue</h3><button onclick="setTheme('moonlight')">Apply</button>
+    </div>
+    <div class="theme-card">
+      <h3>Brady Blue</h3><button onclick="setTheme('brady')">Apply</button>
+    </div>
+
+    <!-- Greens -->
+    <div class="theme-card">
+      <h3>JR Green</h3><button onclick="setTheme('green')">Apply</button>
+    </div>
+    <div class="theme-card">
+      <h3>Monkey Green</h3><button onclick="setTheme('greenmed')">Apply</button>
+    </div>
+    <div class="theme-card">
+      <h3>Golf Green</h3><button onclick="setTheme('darkgreen')">Apply</button>
+    </div>
+
+    <!-- Pinks & Roses -->
+    <div class="theme-card">
+      <h3>Strawberry Pink</h3><button onclick="setTheme('strawberry-pink')">Apply</button>
+    </div>
+    <div class="theme-card">
+      <h3>Shortcake Pink</h3><button onclick="setTheme('shortcake')">Apply</button>
+    </div>
+    <div class="theme-card">
+      <h3>Prissy Pink</h3><button onclick="setTheme('pinkmed')">Apply</button>
+    </div>
+    <div class="theme-card">
+      <h3>Date Rose</h3><button onclick="setTheme('darkrose')">Apply</button>
+    </div>
+
+    <!-- Purples -->
+    <div class="theme-card">
+      <h3>Starburst Purple</h3><button onclick="setTheme('purple')">Apply</button>
+    </div>
+
+    <!-- Brown -->
+    <div class="theme-card">
+      <h3>Bubby-Bear Brown</h3><button onclick="setTheme('bubby-bear')">Apply</button>
+    </div>
+
+    <!-- Original -->
+    <div class="theme-card">
+      <h3>Original Theme</h3><button onclick="setTheme('original')">Reset</button>
+    </div>
+  </div>
+
+  <a href="index.html" class="backToApp">Back</a>
+  <p onclick="location.href='about.html'"
+    style="padding-bottom: 0; font-size: 17px; cursor: pointer; color: var(--accent-color); text-decoration: underline; font-weight: bolder; text-align: center;">
+    Each theme is inspired by someone I love.
+    <br>
+    Click here to learn more
+</p>
+
+<section id="accountPanel" class="account-panel" hidden>
+  <h3>Account</h3>
+  <div class="account-row">
+    <p class="muted" style="text-align:center; margin:0; color:#fff;">
+      Signed in as
+      <strong id="acctEmail" style="color:#0b5fff; font-size:20px; word-break:break-all;">—</strong>.
+      <br>
+      Manage profile, password, and deletion.
+      <a href="settings.html" class="btn-settings" role="button"
+        style="display:inline-block; margin-top:8px; padding:10px 14px; border-radius:12px; background:#111; color:#fff; font-weight:700; text-decoration:none;">
+        Open Settings
+      </a>
+    </p>
+  </div>
+</section>
+
+<!-- ADDED: minimal, visible Privacy link (no other layout changes) -->
+<div class="legal-footer" role="contentinfo">
+  View our <a href="privacy.html" rel="noopener">Privacy Policy</a>.
+</div>
+
+    <script type="module">
+      import { auth, db } from "./firebase-init.js";
+      import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+      import { doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+      // --- Account panel elements (bottom of page) ---
+      const panel = document.getElementById('accountPanel');
+      const emailEl = document.getElementById('acctEmail');
+
+      // Show page
+      const show = () => { document.documentElement.style.visibility = "visible"; };
+
+      // Slug helper for class names
+      const slug = k => String(k).trim().toLowerCase().replace(/\s+/g, "-");
+
+      // Local cache (for offline/slow Firestore)
+      const LOCAL_KEY = "lastThemeClass";
+
+      // Swap ONLY the theme-* class, keep anything else on <html>
+      function applyThemeClass(themeClass) {
+        const root = document.documentElement;
+        const next = themeClass || "theme-original";
+        const keep = (root.className || "")
+          .split(/\s+/).filter(Boolean)
+          .filter(c => !c.startsWith("theme-"));
+        root.className = [...keep, next].join(" ");
+      }
+
+      // Save + live preview; works with your existing onclick="setTheme('name')"
+      async function saveTheme(themeKey) {
+        const u = auth.currentUser;
+        if (!u) {
+          // Not logged in — bounce to login, come back here
+          location.replace("login.html?next=theme.html");
+          return;
+        }
+        const cls = `theme-${slug(themeKey)}`;
+
+        // Optimistic UI so you see it immediately
+        applyThemeClass(cls);
+        try {
+          await setDoc(doc(db, "users", u.uid), { themeClass: cls }, { merge: true });
+          localStorage.setItem(LOCAL_KEY, cls);
+        } catch (e) {
+          console.warn("[theme] setDoc failed (offline or rules). Using local cache for now.", e);
+          localStorage.setItem(LOCAL_KEY, cls);
+        }
+      }
+
+      // Keep legacy onclick hooks working
+      window.setTheme = saveTheme;
+      window.saveTheme = saveTheme;
+
+      // Subscribe to user doc → keep page theme in sync + toggle account panel
+      let unsub = null;
+      onAuthStateChanged(auth, (u) => {
+        // Clean up old listener if any
+        unsub?.(); unsub = null;
+
+        if (!u) {
+          // Hide account panel for signed-out users and redirect
+          if (panel) panel.hidden = true;
+          location.replace("login.html?next=theme.html");
+          return;
+        }
+
+        // Signed in: show account panel and email if present
+        if (panel) {
+          if (emailEl) emailEl.textContent = u.email || 'Account';
+          panel.hidden = false;
+        }
+
+        let first = true;
+
+        // Safari safety: if Firestore is slow, show after 2s using cached theme
+        const slowTimer = setTimeout(() => {
+          if (first && auth.currentUser) {
+            const cached = localStorage.getItem(LOCAL_KEY) || "theme-original";
+            applyThemeClass(cached);
+            show();
+          }
+        }, 2000);
+
+        unsub = onSnapshot(
+          doc(db, "users", u.uid),
+          (snap) => {
+            clearTimeout(slowTimer);
+            const cls = snap.exists()
+              ? (snap.data().themeClass || "theme-original")
+              : "theme-original";
+            applyThemeClass(cls);
+            localStorage.setItem(LOCAL_KEY, cls);
+            if (first) { show(); first = false; }
+          },
+          (err) => {
+            clearTimeout(slowTimer);
+            console.error("[theme] snapshot error:", err);
+            const cached = localStorage.getItem(LOCAL_KEY) || "theme-original";
+            applyThemeClass(cached);
+            show();
+          }
+        );
+      }, (err) => {
+        console.error("[theme] onAuthStateChanged error:", err);
+        // Fail-safe: show cached theme so page isn’t blank forever
+        const cached = localStorage.getItem(LOCAL_KEY) || "theme-original";
+        applyThemeClass(cached);
+        show();
+      });
+    </script>
+    
+  </body>
+  </html>

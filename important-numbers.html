@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>3-Sides Planner — IMPORTANT SUPPORT NUMBERS</title>
+  <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap" rel="stylesheet">
+  <!-- Absolute (good for GitHub Pages) -->
+  <link rel="manifest" href="manifest.webmanifest">
+  
+  <!-- Favicons -->
+  <link rel="icon" type="image/svg+xml" sizes="any" href="/3-sides-planner.io/favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/3-sides-planner.io/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/3-sides-planner.io/favicon-16.png">
+  <link rel="apple-touch-icon" href="/3-sides-planner.io/icon-192.png"> <!-- iOS Home screen -->
+  
+  <!-- (Optional Safari pinned tab) -->
+  <link rel="mask-icon" href="/3-sides-planner.io/favicon-pinned.svg" color="#6a5acd">
+  
+
+  <script src="sw-register.js"></script>
+
+  <!-- At the top of delete-account.html <body> or in <head> -->
+  <script type="module">
+    import './firebase-init.js'; // ensures app/auth/db are initialized
+  </script>
+    
+  <script>
+    (function () {
+      try {
+        var r = document.documentElement;
+        var t = localStorage.getItem("themeClass")
+          || localStorage.getItem("themeClass:last")
+          || "theme-original";
+        (r.className.match(/\btheme-[^\s]+/g) || []).forEach(c => r.classList.remove(c));
+        r.classList.add(t);
+      } catch { }
+    })();
+  </script>
+    
+  <!-- Prevent flash of wrong theme -->
+  <style>
+    html {
+      visibility: hidden
+    }
+  </style>
+  <noscript>
+    <style>
+      html {
+        visibility: visible
+      }
+    </style>
+  </noscript>
+
+  <script type="module" src="auth.js"></script>
+
+  <style>
+    html {
+      visibility: hidden
+    }
+  
+    /* Base layout & theming trims (kept from your page) */
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding-bottom: 5rem;
+      margin: 0;
+      font-family: 'Open Sans', sans-serif;
+      background: rgb(3, 3, 82)
+    }
+  
+    .three-d-title {
+      font-family: 'Patrick Hand', cursive;
+      font-size: 2rem;
+      font-weight: bold;
+      text-align: center;
+      text-shadow: 2px 2px rgba(0, 0, 0, .2);
+      color: green;
+      margin: .7rem 0 0
+    }
+  
+    .container {
+      padding: 1rem;
+      margin: 0 auto;
+      width: 95vw;
+      max-width: 600px;
+      box-sizing: border-box
+    }
+  
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 0
+    }
+  
+    li {
+      font-size: 1.15rem;
+      padding: .9rem .8rem;
+      margin: .3rem;
+      border: 4px solid green;
+      background: rgb(162, 242, 162);
+      line-height: 1.4
+    }
+  
+    .bottom-nav {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: #fafafa;
+      border-top: 1px solid rgba(69, 111, 179, .9);
+      display: flex;
+      justify-content: space-around;
+      padding: .8rem 0;
+      z-index: 1000
+    }
+  
+    .nav-icon {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-decoration: none;
+      color: rgba(69, 111, 179, .9);
+      font-size: 1.3rem
+    }
+  
+    .nav-icon span {
+      font-size: .75rem;
+      margin-top: .2rem
+    }
+  
+    .footer-quote {
+      color: #fff;
+      text-align: center;
+      font-size: 1.3rem;
+      margin: 2rem 0
+    }
+  
+    /* Personal list editor (only shown when logged in) */
+    #editor {
+      display: none;
+      margin-top: 1rem;
+      background: #fff;
+      color: #222;
+      border-radius: 12px;
+      padding: 12px
+    }
+  
+    #editor .row {
+      display: flex;
+      gap: .5rem;
+      margin: .4rem 0
+    }
+  
+    #editor input {
+      flex: 1;
+      padding: .55rem .65rem;
+      border: 1px solid #ccc;
+      border-radius: 8px
+    }
+  
+    #editor button {
+      padding: .55rem .8rem;
+      border-radius: 8px;
+      border: 1px solid #2a922a;
+      background: #2a922a;
+      color: #fff;
+      cursor: pointer
+    }
+  
+    #status {
+      font-size: .9rem;
+      opacity: .8;
+      margin-top: .25rem
+    }
+  
+    #loginHint {
+      display: none;
+      margin: .75rem 0;
+      color: #fff;
+      opacity: .9
+    }
+  
+    /* Prevent FOUC when JS disabled */
+    @media (prefers-reduced-motion:no-preference) {
+  
+      html,
+      body {
+        scroll-behavior: smooth
+      }
+    }
+  
+    /* Inline SVG divider color (green with white edge) */
+    .divider-bg {
+      background: url("data:image/svg+xml;utf8,%3Csvg viewBox='0 0 1440 150' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill='%232a922a' stroke='%23ffffff' stroke-width='3' d='M0,40 Q80,90 160,40 T320,40 T480,40 T640,40 T800,40 T960,40 T1120,40 T1280,40 T1440,40 L1440,0 L0,0 Z'/%3E%3C/svg%3E") no-repeat center;
+      background-size: cover
+    }
+  </style>
+  <noscript>
+    <style>
+      html {
+        visibility: visible
+      }
+    </style>
+  </noscript>  
+
+<style>
+  /* -------------------- BASE PAGE LAYOUT -------------------- */
+.three-d-title {
+  font-family: 'Patrick Hand', cursive;
+  font-size: 2.2rem !important;
+  font-weight: bold;
+  text-align: center;
+  text-shadow: 2px 2px rgba(0, 0, 0, 0.2);
+  color: green !important;
+}
+
+/* -------------------- NAV ICON CONSISTENCY -------------------- */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: #fafafa;
+  border-top: 1px solid rgba(69, 111, 179, 0.903);
+  display: flex;
+  justify-content: space-around;
+  padding: 0.8rem 0;
+  z-index: 1000;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.bottom-nav {
+  overflow-x: auto; /* makes sure it scrolls rather than overflows */
+  max-width: 100vw;
+  box-sizing: border-box;
+}
+
+.nav-icon {
+  text-decoration: none;
+  color: rgba(69, 111, 179, 0.903);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  transition: color 0.3s ease;
+}
+
+.nav-icon span {
+  font-size: 0.75rem;
+  margin-top: 0.2rem;
+  color: rgba(69, 111, 179, 0.903);
+}
+
+.nav-icon:hover,
+.nav-icon:focus {
+  color: #72aadf;
+  outline: none;
+}
+
+textarea, button, input, .icon-button {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding-bottom: 5rem; /* height of the nav */
+}
+
+    html, body {
+  scroll-behavior: smooth;
+  overscroll-behavior-y: contain; /* or 'none' if needed */
+}
+
+
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden; /* ✅ prevents horizontal scroll */
+  box-sizing: border-box;
+}
+
+    html, body {
+  margin: 10;
+  padding: 0;
+  min-height: 100vh;
+  box-sizing: border-box;
+    width: 100%;
+  padding-bottom: 4rem; /* for footer space */
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+/* --------------------------Theme Customization ------------------ */
+:root {
+  --bg-color: #ffffff;
+  --text-color: rgb(3, 3, 82);
+  --accent-color: #87ceeb; /* default blue */
+}
+
+body {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+}
+
+.button, .popup {
+  background-color: var(--accent-color);
+  color: var(--text-color);
+}
+
+.theme-gallery {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 1rem;
+}
+
+.theme-card {
+  border: 2px solid #ccc;
+  padding: 1rem;
+  width: 200px;
+  border-radius: 10px;
+  background-color: #f7f7f7;
+  text-align: center;
+  box-shadow: 0 0 5px rgba(0,0,0,0.1);
+}
+
+.theme-card.locked {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.theme-original {
+  --bg-color: #ffffff;
+  --text-color: purple;
+  --accent-color: #6095aa;
+}
+
+.theme-pinklight {
+  --bg-color: #e59fb6;
+  --text-color: #880e4f;
+  --accent-color: #f48fb1;
+}
+
+.theme-purple {
+  --bg-color: #a836b9;
+  --text-color: #4a148c;
+  --accent-color: #ce93d8;
+}
+
+.theme-greenmed {
+  --bg-color: #6fca8c;
+  --text-color: #131413;
+  --accent-color: #26a69a;
+}
+
+.theme-pinkmed {
+  --bg-color: #e03fa8;       /* rich berry-pink backdrop */
+  --text-color: #621547;     /* soft pastel pink for contrast */
+  --accent-color: #d81b60;   /* bold raspberry pink for buttons */
+}
+
+.theme-darkblue {
+  --bg-color: #1e2a38;      /* deep navy */
+  --text-color: #3f8cb5;     /* soft white */
+  --accent-color: #3f51b5;   /* indigo */
+}
+
+.theme-darkgreen {
+  --bg-color: #1c611c;       /* earthy dark green */
+  --text-color: #43a043;     /* light pastel green */
+  --accent-color: #81c784;   /* medium green */
+}
+
+.theme-darkrose {
+  --bg-color: #4b0e1e;       /* deep romantic rose */
+  --text-color: #823549;     /* soft light rose */
+  --accent-color: #c2185b;   /* vibrant lipstick pink */
+}
+
+.theme-blue {
+  --bg-color: #aad7f6;
+  --text-color: #131413;
+  --accent-color: #42a5f5;
+}
+
+.theme-greenmed {
+  --bg-color: #6fca8c;
+  --text-color: #004d40;
+  --accent-color: #26a69a;
+}
+
+.theme-bingo {
+  --bg-color: #e6f640;
+  --text-color: #767931;
+  --accent-color: #0a0a0a;
+}
+
+.theme-bumblebee {
+  --bg-color: #d0c65d;
+  --text-color: #3e3e3e;
+  --accent-color: #f9c80e;
+}
+
+.theme-dolphin {
+  --bg-color: #1e557d;         /* deep ocean blue */
+  --text-color: #cc6ca0;       /* soft, warm pink – still readable */
+  --accent-color: #73c2fb;     /* playful dolphin splash blue */
+}
+
+.theme-bubby-bear {
+  --bg-color: #6e4f34;     /* warm, soft teddy brown */
+  --text-color: #f9e8d9;   /* creamy vanilla */
+  --accent-color: #a77b4f; /* honey caramel highlight */
+}
+
+.theme-shortcake {
+  --bg-color: #fddde6;      /* soft strawberry milk pink */
+  --text-color: #a84863;    /* berry rose */
+  --accent-color: #ffc1cc;  /* frosted pink topping */
+}
+
+.theme-arcade {
+    --bg-color: #2e0505;       /* dark arcade background */
+  --text-color: #c14242;     /* neon red-pink glow */
+  --accent-color: #ff3131;   /* bold joystick red */
+}
+
+.theme-peach {
+  --bg-color: #F9C5A0;      /* warm peachy background */
+  --text-color: #5A3E36;    /* cocoa brown for beautiful contrast */
+  --accent-color: #FFE5B4;  /* soft peachy cream for highlights */
+}
+
+.theme-brady {
+  --bg-color: #B0C4DE;
+  --text-color: #2F4F4F;
+  --accent-color: #E6EEF5;
+}
+
+.theme-moonlight {
+  --bg-color: #082042;       /* midnight sky */
+  --text-color: #64a4e4;     /* pale moon */
+  --accent-color: #9dcfff;   /* shimmering accent */
+}
+
+.top-journal-section,
+.gradient-section-box,
+.bottom-wrapper,
+.full-journal-box 
+{
+  background: var(--bg-color); /* or a themed gradient if you're fancy */
+  color: var(--text-color);
+}
+
+.theme-colored-text {
+  color: var(--text-color) !important;
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+#authControls {
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+#authControls p {
+  margin: 0;
+  padding: 0;
+}
+
+.page-header {
+  margin-top: 0;
+  padding-top: 0;
+}
+
+body {
+  margin-top: 0;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+  font-size: .5rem;
+  line-height: .9;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  background-color: rgb(3, 3, 82);
+  background-size: cover;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 6rem;
+  box-sizing: border-box;
+  font-family: 'Open Sans', sans-serif !important;
+  color: black !important;
+  overflow-x: hidden;
+}
+
+strong {
+  color: black !important;
+}
+
+/* Responsive styles for important-numbers */
+@media (max-width: 600px) {
+  h2 {
+    font-size: 1.3rem;
+  }
+
+  li {
+    font-size: 1.9rem;
+    padding: 0.8rem;
+  }
+}
+
+.section-container {
+  padding: 1rem;
+  max-width: 1000px;
+  margin: auto;
+}
+
+@media (max-width: 600px) {
+  body {
+    padding: 0 1rem;
+    box-sizing: border-box;
+  }
+}
+
+li {
+  font-size: 1.15rem !important;
+  padding: 0.9rem 0.8rem !important; /* vertical padding reduced */
+  margin: .3rem !important;  /* tighter space between items */
+  border: 4px solid green !important;
+  background-color: rgb(162, 242, 162) !important;
+  line-height: 1.4; /* 💫 try 1.5–1.8 depending on what looks best */
+
+}
+
+.three-d-title {
+  font-family: 'Patrick Hand', cursive;
+  font-size: 2rem !important;
+  font-weight: bold;
+  text-align: center;
+  text-shadow: 2px 2px rgba(0, 0, 0, 0.2);
+  color: green !important;
+    margin-top: 0.7rem !important;  /* <-- pull it tight to the top divider */
+  margin-bottom: 0rem !important; /* <-- pull it tight to the bottom divider */
+}
+
+.footer-quote {
+  color: white; /* or #fefefe, or any color you want */
+  text-align: center;
+  font-size: 1.3rem;
+  margin-top: 2rem;
+}
+
+/* --------------------- Mobile-safe media query -------------------- */
+@media (max-width: 600px) {
+  .image-text-box {
+    width: 100%;
+    max-width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+    border-radius: 0;
+    padding: 1rem 0.75rem;
+    text-align: left; /* optional: center if you prefer */
+  }
+
+  .hero-image {
+    width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+  }
+
+  .hero-caption,
+  .image-text-box p {
+    font-size: 1rem;
+    line-height: 1.4;
+  }
+}
+
+.container {
+  padding: 1rem;
+  margin: 0 auto;
+  width: 95vw;
+  max-width: 600px;
+  box-sizing: border-box;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+.support-box {
+  width: 100%;
+  margin: 0 auto;
+  border-radius: 0;
+}
+
+/* =============== overrides ================= */
+.torn-paper-divider {
+  width: 100%;
+  height: 60px;
+  margin: 0 auto;
+  display: block;
+  background: url("data:image/svg+xml;utf8,%3Csvg viewBox='0 0 1440 150' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill='rgb(162,242,162)' d='M0,40 Q80,90 160,40 T320,40 T480,40 T640,40 T800,40 T960,40 T1120,40 T1280,40 T1440,40 L1440,0 L0,0 Z'/%3E%3C/svg%3E") no-repeat center;
+  background-size: cover;
+  transform: rotate(180deg);
+}
+
+.torn-paper-divider { 
+  filter: none !important; 
+}
+
+
+  </style>
+</head>
+<body>
+<div class="torn-paper-divider" style="filter: brightness(0) invert(1); margin-bottom: 1rem;"></div>
+
+  <div class="container">
+    <div class="support-box">
+    <h1 class="three-d-title">Important Support Numbers</h1>
+<div class="torn-paper-divider" style="filter: brightness(0) invert(1); margin-bottom: 1rem;"></div>
+
+    <ul>
+      <li><strong>🚨 Emergency Services:</strong>  911</li>
+      <li><strong>📱 Suicide & Crisis Lifeline </strong>(24/7, confidential)988 </li>
+      <li><strong>🧠 NAMI Helpline (M–F, 10am–10pm ET):</strong> 1-800-950-NAMI (6264)</li>
+      <li><strong>💬 Crisis Text Line:</strong> Text "HELLO" to 741741</li>
+      <li><strong>🏳️‍🌈 The Trevor Project (LGBTQ+ Support):</strong> 1-866-488-7386</li>
+      <li><strong>📞 SAMHSA National Helpline:</strong> 1-800-662-HELP (4357)</li>
+      <li><strong>👩‍⚕️ Veteran’s Crisis Line:</strong>  (Press 1) 1-800-273-TALK (8255)</li>
+      <li><strong>🌐 NAMI Online Resources:</strong> www.nami.org/help</li>
+    </ul>
+  </div>
+
+  <footer class="footer-quote">💗 𝒴𝑜𝓊'𝓇𝑒 𝓃𝑜𝓉 𝒶𝓁𝑜𝓃𝑒. 𝐻𝑒𝓁𝓅 𝒾𝓈 𝒿𝓊𝓈𝓉 𝒶 𝒸𝒶𝓁𝓁 𝒶𝓌𝒶𝓎. 💗</footer>
+
+   <footer class="bottom-nav">
+    <a href="index.html" class="nav-icon">🏠<span>Home</span></a>
+    <a href="toolkit-hub.html" class="nav-icon">🧰<span>Toolkit</span></a>
+    <a href="wellness.html" class="nav-icon">💖<span>Wellness</span></a>
+    <a href="pet.html" class="nav-icon">🐾<span>Pet</span></a>
+    <a href="important-numbers.html" class="nav-icon">🆘<span>Help</span></a>
+  </footer>
+  
+  <script type="module">
+    import { auth, db } from "./firebase-init.js";
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    // --- fast reveal (public page) ---
+    const reveal = () => (document.documentElement.style.visibility = "visible");
+    const failsafe = setTimeout(reveal, 1200);
+    window.addEventListener("load", () => setTimeout(reveal, 200));
+
+    // Tiny DOM helpers + null guards (editor is optional)
+    const $ = (id) => document.getElementById(id);
+    const els = {
+      list: $("list"),
+      editor: $("editor"),
+      status: $("status"),
+      name: $("name"),
+      phone: $("phone"),
+      addBtn: $("addBtn"),
+      saveBtn: $("saveBtn"),
+      loginHint: $("loginHint"),
+    };
+
+    // Default placeholders (used only if you add the editor UI)
+    let items = [
+      { name: "Mom", phone: "" },
+      { name: "Rick", phone: "" },
+      { name: "Primary Care", phone: "" },
+      { name: "Therapist", phone: "" },
+    ];
+
+    let ref = null;
+
+    // Renders the simple name/phone rows (only if #list exists)
+    function render() {
+      if (!els.list) return;
+      els.list.innerHTML = "";
+      items.forEach((it, idx) => {
+        const row = document.createElement("div");
+        row.className = "row";
+        const n = document.createElement("input");
+        const p = document.createElement("input");
+        n.value = it.name || "";
+        p.value = it.phone || "";
+        n.placeholder = "Name"; p.placeholder = "Phone";
+        n.addEventListener("input", () => (items[idx].name = n.value));
+        p.addEventListener("input", () => (items[idx].phone = p.value));
+        const del = document.createElement("button");
+        del.textContent = "Delete";
+        del.addEventListener("click", () => { items.splice(idx, 1); render(); markDirty(); });
+        row.append(n, p, del);
+        els.list.appendChild(row);
+      });
+    }
+    const markDirty = (m = "Unsaved changes…") => { if (els.status) els.status.textContent = m; };
+
+    // Add/save handlers (only if those buttons exist)
+    els.addBtn?.addEventListener("click", () => {
+      const name = (els.name?.value || "").trim();
+      const phone = (els.phone?.value || "").trim();
+      if (!name && !phone) return;
+      items.push({ name, phone });
+      if (els.name) els.name.value = "";
+      if (els.phone) els.phone.value = "";
+      render(); markDirty();
+    });
+
+    els.saveBtn?.addEventListener("click", save);
+
+    async function load() {
+      if (!ref) return;
+      els.status && (els.status.textContent = "Loading…");
+      try {
+        const s = await getDoc(ref);
+        if (s.exists() && Array.isArray(s.data().items)) items = s.data().items;
+        render();
+        els.status && (els.status.textContent = "Loaded");
+      } catch (e) {
+        console.error("Load failed:", e);
+        els.status && (els.status.textContent = "Load error");
+      }
+    }
+
+    async function save() {
+      if (!ref) return;
+      els.status && (els.status.textContent = "Saving…");
+      try {
+        await setDoc(ref, { items, updatedAt: serverTimestamp() }, { merge: true });
+        els.status && (els.status.textContent = "Saved ✓");
+      } catch (e) {
+        console.error("Save failed:", e);
+        els.status && (els.status.textContent = "Save error");
+      }
+    }
+
+    // Theme upgrade if signed in (no gate — page remains public)
+    async function applyThemeFor(uid) {
+      try {
+        const s = await getDoc(doc(db, "users", uid));
+        const cls = s.exists() ? (s.data().themeClass || "theme-original") : "theme-original";
+        const root = document.documentElement;
+        [...root.classList].forEach(c => c.startsWith("theme-") && root.classList.remove(c));
+        root.classList.add(cls);
+        try { localStorage.setItem("themeClass", cls); } catch { }
+      } catch { }
+    }
+
+    // Auth wiring — stays public when logged out
+    onAuthStateChanged(auth, async (user) => {
+      try {
+        if (user) {
+          ref = doc(db, "users", user.uid, "settings", "importantNumbers");
+          if (els.loginHint) els.loginHint.style.display = "none";
+          if (els.editor) els.editor.style.display = "block";
+          await applyThemeFor(user.uid);
+          await load();
+        } else {
+          ref = null;
+          if (els.editor) els.editor.style.display = "none";
+          if (els.loginHint) els.loginHint.style.display = "block";
+
+          // Progressive theme for guests
+          const cached = localStorage.getItem("themeClass");
+          if (cached) {
+            const root = document.documentElement;
+            [...root.classList].forEach(c => c.startsWith("theme-") && root.classList.remove(c));
+            root.classList.add(cached);
+          }
+          render(); // does nothing unless you added the editor
+        }
+      } finally {
+        reveal(); clearTimeout(failsafe);
+      }
+    });
+  </script>
+   
+  </body>
+  
+  </html>

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <title>3-Sides Planner — PROTOCOL</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    
+    <!-- Favicons -->
+    <link rel="icon" type="image/svg+xml" sizes="any" href="/3-sides-planner.io/favicon.svg">
+    <link rel="icon" type="image/png" sizes="32x32" href="/3-sides-planner.io/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/3-sides-planner.io/favicon-16.png">
+    <link rel="apple-touch-icon" href="/3-sides-planner.io/icon-192.png"> <!-- iOS Home screen -->
+
+    <!-- Absolute (good for GitHub Pages) -->
+    <link rel="manifest" href="manifest.webmanifest">
+    
+    <style>
+        body {
+            font: 16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+            padding: 1rem;
+            margin: 0
+        }
+    </style>
+</head>
+
+<body>
+    <p>Handling custom link…</p>
+    <script>
+        const base = location.pathname.startsWith('/3-sides-planner.io/') ? '/3-sides-planner.io/' : '/';
+        const go = (path) => location.replace(base + path);
+
+        // Handles web+threesides://… → protocol.html?url=%s
+        const q = new URLSearchParams(location.search);
+        const url = q.get('url') || '';
+
+        try {
+            const key = `inbox:protocol:${Date.now()}`;
+            localStorage.setItem(key, JSON.stringify({ url }));
+        } catch { }
+
+        // Route to your app
+        go('index.html');
+    </script>
+</body>
+
+</html>

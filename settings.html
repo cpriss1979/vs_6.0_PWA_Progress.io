@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Settings — 3 Sides Planner</title>
+
+    <style>
+        :root {
+            color-scheme: light dark;
+        }
+
+        body {
+            margin: 0;
+            font-family: ui-sans-serif, -apple-system, Segoe UI, Roboto, sans-serif;
+            background: #f7f7fb;
+        }
+
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            background: #fff;
+            border-bottom: 1px solid #eee;
+        }
+
+        .brand {
+            font-weight: 800;
+            letter-spacing: .2px;
+        }
+
+        .muted {
+            color: #666;
+        }
+
+        main {
+            max-width: 880px;
+            margin: 18px auto 40px;
+            padding: 0 16px;
+        }
+
+        /* ================== container colors ==================== */
+        .card {
+            background: #fff;
+            border: 1px solid #eee;
+            border-radius: 6px;
+            padding: 20px;
+            margin: 14px 0;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, .05);
+        }
+
+        h1 {
+            margin: 8px 0 12px;
+            font-size: 2.4rem;
+            color: black;
+            text-align: center;
+            text-decoration: underline;
+        }
+
+        h2 {
+            margin: 0 0 8px;
+            font-size: 1.2rem;
+            color: rgb(72, 60, 60);
+        }
+
+        label {
+            display: block;
+            font-weight: 700;
+            margin: 10px 0 6px;
+        }
+
+        input,
+        button {
+            font-size: 16px;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+        }
+
+        /* ================= password input fields =============== */
+        input {
+            width: 94%;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        .row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background: #111;
+            color: #fff;
+            border: 0;
+            font-weight: 700;
+        }
+
+        .btn-ghost {
+            background: #f1f1f1;
+            color: #111;
+            border: 1px solid #e5e5e5;
+        }
+
+        .status {
+            margin-top: 8px;
+            font-size: .95rem;
+            color: #555;
+        }
+
+        /* ============= danger zone =============== */
+        .danger {
+            border: 1px solid #ffd2d2;
+            background: #fff3f3;
+        }
+
+        .btn-danger {
+            background: #d92d20;
+            color: #fff;
+            border: 0;
+            font-weight: 700;
+        }
+
+        .two {
+            display: grid;
+            grid-template-columns: 1fr 260px;
+            gap: 12px;
+        }
+
+        @media (max-width: 760px) {
+            .two {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ================ user account email ================= */
+        .email-blue {
+            color: #0b5fff;
+            word-break: break-all;
+            font-weight: 700;
+        }
+
+        .backlink {
+            text-decoration: underline;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bolder;
+        }
+
+        /* Make just the Account card tighter */
+        .account-card {
+            padding: 10px 12px;
+        }
+
+        /* Make the right column only as wide as the button */
+        .account-card .two {
+            grid-template-columns: 1fr auto;
+            /* instead of 1fr 260px */
+            align-items: center;
+        }
+
+        /* Kill extra spacing around the logout row */
+        .account-card .row {
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Small, tidy logout button */
+        #logoutBtn {
+            padding: 6px 10px;
+            font-size: 14px;
+            border-radius: 6px;
+        }
+
+        /* Tighter Account card */
+        .account-card {
+            padding: 30px 32px;
+        }
+
+        /* Layout: left info + right button, nicely aligned */
+        .acct-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            /* tighter horizontal gap */
+        }
+
+        /* Left block spacing tightened */
+        .acct-left {
+            line-height: 1.15;
+        }
+
+        /* Small label above the email */
+        .acct-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 2px;
+        }
+
+        /* Bigger, bold email — this is the hero */
+        .acct-email {
+            font-size: 20px;
+            /* bump as needed: 20–22 looks great */
+            font-weight: 800;
+            color: #0b5fff;
+            word-break: break-all;
+            /* long emails won’t overflow on mobile */
+            letter-spacing: 0.1px;
+        }
+
+        /* Tiny subline under the email */
+        .acct-sub {
+            margin-top: 4px;
+            font-size: 12.5px;
+            color: #666;
+        }
+
+        .acct-sub .sep {
+            margin: 0 6px;
+            opacity: .5;
+        }
+
+        /* Compact logout button */
+        #logoutBtn {
+            padding: 6px 10px;
+            font-size: 14px;
+            border-radius: 6px;
+        }
+
+        /* Remove extra space above/below the h2 for this card */
+        .account-card h2 {
+            margin: 0 0 6px;
+        }
+
+        /* --- scrolling sanity --- */
+        html,
+        body {
+            /* allow natural page height + scrolling */
+            min-height: 100%;
+            height: auto;
+            overflow-y: auto;
+        }
+
+        /* make sure nothing globally sets overflow hidden on main */
+        main {
+            overflow: visible;
+        }
+
+        /* sticky header is fine; ensure it doesn't cover clicks or block scroll */
+        header {
+            position: sticky;
+            /* you already had this */
+            top: 0;
+            z-index: 10;
+            /* keep, but not absurdly high */
+        }
+
+        /* defensive: if any container accidentally got 100vh, let it grow */
+        [class*="container"],
+        [class*="wrap"],
+        main,
+        .card {
+            max-height: none;
+        }
+
+        /* Tighten spacing under the "Password" h2 */
+        .account-card h2+label {
+            margin-top: 2px;
+            /* was 10px from the global label rule */
+        }
+
+        /* (optional) make the label look like helper text */
+        .account-card h2+label {
+            font-size: 0.95rem;
+            color: #666;
+        }
+
+        .backToApp {
+            display: inline-block;
+            margin: 6rem auto 6;
+            padding: 10px 20px;
+            background-color: #000 !important;
+            color: #fff !important;
+            font-size: 1rem;
+            font-weight: 600;
+            border: 1px solid white;
+            border-radius: 6px;
+            text-decoration: none;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+            transition: background-color .3s, transform .2s;
+            text-align: center;
+        }
+
+        .backToApp:hover {
+            background-color: #222 !important;
+            transform: scale(1.03);
+        }
+
+        .backToApp:active {
+            transform: scale(0.98);
+        }
+
+        /* --- Inputs: full width so they align perfectly inside cards --- */
+        input {
+            width: 93%;
+        }
+
+        /* --- Card padding (you set 20px) so we can match the page header --- */
+        .card {
+            padding: 20px;
+        }
+
+        /* --- Page intro (h1 + subtext) aligned with card content --- */
+        .page-intro {
+            padding: 0 20px;
+        }
+
+        /* same left/right as .card */
+        /* --- Logout button styling with clear border --- */
+        #logoutBtn {
+            padding: 8px 12px;
+            font-size: 14px;
+            border-radius: 6px;
+            border: 2px solid #7d81897c;
+            /* border you asked for */
+            background: #d3d7de;
+            /* soft bg so it reads as a button */
+        }
+
+        /* --- Copy UID button: visible + consistent --- */
+        #copyUid {
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background: #111;
+            color: #fff;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        #copyUid:hover {
+            filter: brightness(.95);
+        }
+
+        #copyUid:active {
+            transform: translateY(1px);
+        }
+
+        #copyUid.copied {
+            background: #16a34a;
+        }
+
+        /* Tighten spacing under the Password title to the label */
+        .account-card h2+label {
+            margin-top: 2px;
+            font-size: .95rem;
+            color: #666;
+        }
+
+        #currentPw,
+#newPw {
+  background-color: #e0e0e0;  /* light/medium grey */
+  color: #111;                /* keep text readable */
+}
+
+/* Stack the links in Preferences */
+.prefs a { 
+  display: block; 
+  margin: 6px 0; 
+}
+
+/* Full-width purple buttons for the Preferences card */
+:root{ --brand:#0b5fff; --brand-d:#0848cc; }
+
+.btn-wide{
+  display:block;width:90%;
+  padding:12px 16px;border-radius:6px;border:0;
+  background:var(--brand); color:#fff; font-weight:700;
+  text-align:center; box-shadow:0 2px 8px rgba(11,95,255,.18);
+  transition:filter .15s ease, transform .08s ease;
+}
+.btn-wide:hover{filter:brightness(.96)}
+.btn-wide:active{transform:translateY(1px)}
+
+/* put space between stacked buttons */
+.btn-wide + .btn-wide { margin-top: 10px; }
+
+
+
+/* === Normalize section headings === */
+.card h2{
+  /* same font on every card title */
+  font: 900 1.2rem/1.2 ui-sans-serif,-apple-system,"Segoe UI",Roboto,sans-serif;
+  letter-spacing: .1px;
+  margin: 0 0 8px;          /* keep your spacing */
+}
+
+/* Don’t let special cards override the size */
+.account-card h2,
+.danger h2{
+  font-size: inherit;
+  line-height: inherit;
+  font-weight: inherit;
+}
+
+/* Bigger, consistent section titles for Account / Password / Preferences */
+.card h2{
+  font: 800 1.5rem/1.25 ui-sans-serif,-apple-system,"Segoe UI",Roboto,sans-serif; /* was 1.2rem */
+  letter-spacing: .1px;
+  margin: 0 0 10px;
+}
+
+/* Keep any card-specific overrides from shrinking the size */
+.account-card h2,
+.danger h2{
+  font-size: inherit;
+  line-height: inherit;
+  font-weight: inherit;
+}
+
+/* Force the same bigger size for all section titles */
+.card > h2,
+.account-card > h2,
+.danger > h2 {
+  font-size: 1.5rem !important;   /* tweak 1.4–1.6rem to taste */
+  line-height: 1.25 !important;
+  font-weight: 800 !important;
+  margin: 0 0 10px !important;
+}
+    </style>
+
+    <!-- Initialize Firebase for this page -->
+    <script type="module">
+        import './firebase-init.js';
+    </script>
+
+<body>
+
+    <br>
+    <main>
+        <div class="page-intro">
+            <h1>Settings</h1>
+            <p class="muted">Manage your account and security. Deletion lives here in the Danger Zone.</p>
+        </div>
+
+        <!-- Account (compact, email above Support details) -->
+        <section class="card account-card">
+            <h2>Account</h2>
+
+            <div class="acct-row">
+                <!-- LEFT: email on top, support details under it -->
+                <div class="acct-left">
+
+                    <div class="acct-email" id="email">—</div>
+
+                    <!-- Support details -->
+                    <div class="acct-sub muted" style="margin-top:6px;">
+                        <details>
+                            <summary style="cursor:pointer; user-select:none;">Support details</summary>
+                            <div style="margin-top:6px;">
+                                <div>Sign-in method: <span id="provider">—</span></div>
+
+                                <!-- UID + Copy -->
+                                <div class="row" style="gap:8px; align-items:center;">
+                                    <span class="muted">
+                                        UID: <code id="uid" style="font-size:12.5px; word-break:break-all;">—</code>
+                                    </span>
+                                    <button id="copyUid" type="button">Copy</button>
+                                    <span id="copyMsg" class="muted" style="font-size:12px;"></span>
+                                </div>
+                            </div>
+                        </details>
+                    </div>
+                </div>
+
+                <!-- RIGHT: compact logout button -->
+                <div class="acct-right">
+                    <button id="logoutBtn" class="btn-ghost" type="button">Log out</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Password helpers -->
+        <section class="card account-card">
+            <h2>Password</h2>
+
+            <label for="currentPw">Change password (re-auth required)</label>
+            <input id="currentPw" type="password" placeholder="Current password" autocomplete="current-password" />
+            <input id="newPw" type="password" placeholder="New password (min 6 chars)" autocomplete="new-password"
+                style="margin-top:8px;" />
+            <div class="row" style="margin-top:8px;">
+                <button id="changePw" class="btn" type="button">Change password</button>
+            </div>
+            <div id="pwStatus" class="status"></div>
+        </section>
+
+        <!-- Preferences (optional quick links) -->
+        <section class="card account-card prefs">
+            <h2>Preferences</h2>
+            <p class="muted">Personalize your experience.</p>
+        
+            <a href="theme.html" class="btn-wide">Open theme settings</a>
+            <a href="index.html" class="btn-wide">← Back to app</a>
+        </section>
+          
+        <!-- Danger Zone: the ONLY link to deletion -->
+        <section class="card danger">
+            <h2 style="color: red; font-size: 28px;">Danger zone</h2>
+            <p class="muted">
+                Permanently delete your account and all data. This action cannot be undone.
+            </p>
+          
+            <a href="delete-account.html" style="display:inline-block; margin-top:6px; text-decoration:none;">
+                <button class="btn-danger" type="button">Delete account…</button>
+            </a>
+        </section>
+    </main>
+</body>
+
+<script type="module">
+    // ======================== Settings page logic ========================
+    // Imports
+    import { auth } from './firebase-init.js';
+    import {
+        onAuthStateChanged,
+        signOut,
+        EmailAuthProvider,
+        reauthenticateWithCredential,
+        updatePassword,
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    // ---------- DOM ----------
+    const headerRight = document.getElementById('headerRight'); // optional
+    const emailEl = document.getElementById('email');
+    const uidEl = document.getElementById('uid');
+    const providerEl = document.getElementById('provider');
+
+    const logoutBtn = document.getElementById('logoutBtn');
+
+    const currentPw = document.getElementById('currentPw');
+    const newPw = document.getElementById('newPw');
+    const changePw = document.getElementById('changePw');
+    const pwStatus = document.getElementById('pwStatus');
+
+    const copyBtn = document.getElementById('copyUid');
+    const copyMsg = document.getElementById('copyMsg');
+
+    // ---------- Helpers ----------
+    function signedOutHeader() {
+        if (!headerRight) return;
+        headerRight.innerHTML = '<a class="backlink" href="login.html">Login</a>';
+    }
+    function signedInHeader(user) {
+        if (!headerRight) return;
+        const email = user?.email || 'Account';
+        headerRight.innerHTML =
+            `<span class="muted">Signed in as </span><strong class="email-blue">${email}</strong>`;
+    }
+    function prettyProvider(id) {
+        switch (id) {
+            case 'password': return 'Email & password';
+            case 'google.com': return 'Google';
+            case 'apple.com': return 'Apple';
+            case 'facebook.com': return 'Facebook';
+            case 'github.com': return 'GitHub';
+            case 'microsoft.com': return 'Microsoft';
+            case 'twitter.com': return 'X (Twitter)';
+            case 'yahoo.com': return 'Yahoo';
+            case 'phone': return 'Phone number';
+            default: return id || 'Unknown';
+        }
+    }
+    // Avoid duplicate listeners when hot-reloading
+    function setClick(el, handler) {
+        if (!el) return;
+        const id = el.id;
+        const clone = el.cloneNode(true);
+        el.replaceWith(clone);
+        clone.addEventListener('click', handler);
+        return document.getElementById(id);
+    }
+
+    // ---------- Auth gate + wiring ----------
+    onAuthStateChanged(auth, (user) => {
+        // Gate: must be signed in to view settings
+        if (!user) {
+            signedOutHeader();
+            setTimeout(() => (location.href = 'login.html?next=settings.html'), 400);
+            return;
+        }
+
+        // Header + account basics
+        signedInHeader(user);
+        if (emailEl) emailEl.textContent = user.email || '—';
+        if (uidEl) uidEl.textContent = user.uid || '—';
+
+        // Human-friendly providers (support multiple)
+        const ids = (user.providerData?.length
+            ? user.providerData.map(p => p.providerId)
+            : [user.providerId]).filter(Boolean);
+        const providersPretty = ids.map(prettyProvider).join(', ');
+        if (providerEl) providerEl.textContent = providersPretty || 'Email & password';
+
+        // ----- Logout -----
+        setClick(logoutBtn, async () => {
+            if (!logoutBtn) return;
+            logoutBtn.disabled = true;
+            try {
+                await signOut(auth);
+                location.href = 'index.html';
+            } catch (e) {
+                console.error(e);
+                logoutBtn.disabled = false;
+                alert('Could not log out. Please try again.');
+            }
+        });
+
+        // ----- Change password (email/password users) -----
+        setClick(changePw, async () => {
+            if (!currentPw || !newPw || !pwStatus) return;
+            const cur = currentPw.value;
+            const nxt = newPw.value;
+            pwStatus.textContent = '';
+
+            if (!cur || !nxt || nxt.length < 6) {
+                pwStatus.textContent = 'Enter current and new password (min 6 chars).';
+                return;
+            }
+            changePw.disabled = true;
+            pwStatus.textContent = 'Updating…';
+            try {
+                const cred = EmailAuthProvider.credential(user.email, cur);
+                await reauthenticateWithCredential(user, cred);
+                await updatePassword(user, nxt);
+                pwStatus.textContent = 'Password updated ✅';
+                currentPw.value = '';
+                newPw.value = '';
+            } catch (e) {
+                console.error(e);
+                pwStatus.textContent =
+                    e.code === 'auth/wrong-password' ? 'Current password is incorrect.' :
+                        e.code === 'auth/weak-password' ? 'New password is too weak.' :
+                            e.code === 'auth/requires-recent-login' ? 'Please sign in again and retry.' :
+                                'Could not update password.';
+            } finally {
+                changePw.disabled = false;
+                setTimeout(() => {
+                    if (pwStatus.textContent.includes('✅')) pwStatus.textContent = '';
+                }, 1800);
+            }
+        });
+
+        // ----- Copy UID -----
+        setClick(copyBtn, async () => {
+            try {
+                await navigator.clipboard.writeText(uidEl?.textContent || '');
+                // visual feedback
+                copyBtn.classList.add('copied');
+                if (copyMsg) copyMsg.textContent = 'Copied';
+                setTimeout(() => {
+                    copyBtn.classList.remove('copied');
+                    if (copyMsg) copyMsg.textContent = '';
+                }, 1200);
+            } catch (e) {
+                console.error(e);
+                if (copyMsg) copyMsg.textContent = "Couldn't copy";
+            }
+        });
+
+    }, (err) => {
+        console.error('[settings] onAuthStateChanged error', err);
+        signedOutHeader();
+        location.href = 'login.html?next=settings.html';
+    });
+</script>
+</body>
+
+</html>

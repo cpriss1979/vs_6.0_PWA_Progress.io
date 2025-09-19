@@ -1,0 +1,1001 @@
+<html lang="en" class="theme-original">
+
+<head>
+  <!-- 0) AUTH GUARD — FIRST in <head> on PROTECTED pages -->
+    <script>
+      (function () {
+        const PUBLIC_PAGES = ["index.html", "important-numbers.html", "privacy.html", "login.html", "register.html"];
+        const path = location.pathname.split("/").pop() || "index.html";
+        if (PUBLIC_PAGES.includes(path)) return; // no-op on public pages
+  
+        // Hide immediately to avoid UI flash on protected pages
+        document.documentElement.style.visibility = "hidden";
+  
+        const goLogin = () => {
+          location.href = "login.html?next=" + encodeURIComponent(location.href);
+        };
+  
+        // Try Firebase; fall back to a temporary session flag if needed
+        (async () => {
+          try {
+            const { getAuth, onAuthStateChanged } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js");
+            const { auth } = await import("./firebase-init.js");
+            onAuthStateChanged(auth, (user) => {
+              if (!user) return goLogin();
+              document.documentElement.style.visibility = "";
+              document.documentElement.setAttribute("data-ready", "1");
+            });
+          } catch (e) {
+            const authed = sessionStorage.getItem("fs_logged_in") === "1"; // temporary fallback
+            if (!authed) return goLogin();
+            document.documentElement.style.visibility = "";
+            document.documentElement.setAttribute("data-ready", "1");
+          }
+        })();
+      })();
+    </script>
+    
+  <meta charset="UTF-8" />
+
+  <script src="sw-register.js"></script>
+
+  <!-- At the top of delete-account.html <body> or in <head> -->
+  <script type="module">
+    import './firebase-init.js'; // ensures app/auth/db are initialized
+  </script>
+    
+  <script>
+    (function () {
+      try {
+        var r = document.documentElement;
+        var t = localStorage.getItem("themeClass")
+          || localStorage.getItem("themeClass:last")
+          || "theme-original";
+        (r.className.match(/\btheme-[^\s]+/g) || []).forEach(c => r.classList.remove(c));
+        r.classList.add(t);
+      } catch { }
+    })();
+  </script>
+    
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>3-Sides Planner — LETTER TO FUTURE ME</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap" rel="stylesheet">
+  <!-- Absolute (good for GitHub Pages) -->
+  <link rel="manifest" href="manifest.webmanifest">
+  
+  <!-- Favicons -->
+  <link rel="icon" type="image/svg+xml" sizes="any" href="/3-sides-planner.io/favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/3-sides-planner.io/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/3-sides-planner.io/favicon-16.png">
+  <link rel="apple-touch-icon" href="/3-sides-planner.io/icon-192.png"> <!-- iOS Home screen -->
+
+  <!-- Prevent flash of wrong theme -->
+  <!-- Critical paint (no white flash) -->
+  <style>
+    html {
+      background: rgb(3, 3, 82);
+      color: #fff;
+    }
+
+    body {
+      background: inherit;
+      color: inherit;
+      margin: 0;
+    }
+  </style>
+
+  <style>
+    html,
+    body {
+      scroll-behavior: smooth;
+      overscroll-behavior-y: contain;
+      /* or 'none' if needed */
+    }
+
+    .three-d-title {
+      font-family: 'Patrick Hand', cursive;
+      font-size: 2.2rem;
+      font-weight: bold;
+      text-align: center;
+      text-shadow: 2px 2px rgba(0, 0, 0, 0.2);
+      color: white !important;
+    }
+
+    #letterDisplay {
+      text-align: left;
+      padding-left: .01rem;
+      padding-right: .01rem;
+    }
+
+    :root {
+      --bg-color: #ffffff;
+      --text-color: rgb(3, 3, 82);
+      --accent-color: #87ceeb;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+      /* ✅ prevents horizontal scroll */
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 10;
+      padding: 0;
+      min-height: 100vh;
+      box-sizing: border-box;
+      background-color: rgb(3, 3, 82);
+      /* ✅ keep only the blue */
+      color: white;
+      width: 100%;
+      font-family: 'Open Sans', sans-serif;
+      padding-bottom: 4rem;
+      /* for footer space */
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    .dreamy-box {
+      width: 100% !important;
+      padding: 2rem 2rem !important;
+      background-color: transparent;
+      box-shadow: none;
+      border-radius: 0;
+      border: none;
+      margin: 0;
+    }
+
+    textarea {
+      width: 95%;
+      min-height: 100px;
+      font-size: 1rem;
+      padding: 0.5rem;
+    }
+
+    .nav-icon {
+      text-decoration: none;
+      color: rgba(69, 111, 179, 0.903);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-size: 1.2rem;
+    }
+
+    /* -------------------- Back to App ---------------- */
+    .backToApp {
+      display: inline-block;
+      margin: 2rem auto;
+      padding: 10px 20px;
+      background-color: #000 !important;
+      /* Black background */
+      color: #fff !important;
+      /* White text */
+      font-size: 1rem;
+      font-weight: 600;
+      border: 1px solid white;
+      border-radius: 8px;
+      text-decoration: none;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+      /* Soft white-ish glow */
+      transition: background-color 0.3s, transform 0.2s;
+      text-align: center;
+    }
+
+    .backToApp:hover {
+      background-color: #222 !important;
+      /* Darker hover */
+      color: #fff !important;
+      transform: scale(1.03);
+    }
+
+    .backToApp:active {
+      transform: scale(0.98);
+    }
+
+    .center-back-button {
+      text-align: center;
+    }
+
+    #summary {
+      animation: fadeInLetter 1.5s ease-in-out;
+      white-space: pre-wrap;
+      font-size: 1.2rem;
+      color: black;
+      font-family: 'Patrick Hand', cursive;
+    }
+
+    .-align {
+      text-align: left;
+      padding-left: 1rem;
+    }
+
+    /* -------------------- Hidden Back Button Styling (if JS toggled) ---------------- */
+    #backButton {
+      display: none;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s ease;
+    }
+
+    #backButton.show {
+      display: inline-block;
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .three-d-title {
+      font-size: 2.5rem;
+      font-family: 'Patrick Hand', cursive;
+      text-align: center;
+      margin-bottom: 2rem;
+      color: rgb(40, 130, 180);
+      letter-spacing: 1.5px;
+      font-weight: bold;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.25);
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 0 1rem;
+        box-sizing: border-box;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .page-wrapper {
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        color: rgb(0, 145, 255);
+        font-size: 17px;
+      }
+
+      .dreamy-box {
+        border-radius: 0;
+        /* Optional: removes rounded edges for more flush look */
+      }
+    }
+
+    @media (max-width: 600px) {
+      textarea {
+        width: 98%;
+      }
+    }
+
+    main {
+      max-width: 100vw;
+      overflow-x: hidden;
+    }
+
+    label[for="letterInput"] {
+      display: block;
+      text-align: center;
+      margin-bottom: 1rem;
+      font-size: 1.5rem;
+      color: #98ff98;
+      /* mint */
+      ;
+    }
+
+    details summary {
+      text-align: center;
+      list-style: none;
+      /* removes the default triangle */
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 19px;
+    }
+
+    details summary::marker {
+      display: none;
+    }
+
+    @media (max-width: 500px) {
+      .button-row {
+        flex-direction: column;
+        align-items: center;
+      }
+    }
+
+    /* --------------------- Mobile-safe media query -------------------- */
+    @media (max-width: 600px) {
+      .image-text-box {
+        width: 100%;
+        max-width: 100%;
+        margin-left: 0;
+        margin-right: 0;
+        border-radius: 0;
+        padding: 1rem 0.75rem;
+        text-align: left;
+        /* optional: center if you prefer */
+      }
+
+      .hero-image {
+        width: 100%;
+        height: auto;
+        display: block;
+        margin: 0 auto;
+      }
+
+      .hero-caption,
+      .image-text-box p {
+        font-size: 1rem;
+        line-height: 1.4;
+      }
+    }
+
+    /* --------------------- Mobile-safe media query -------------------- */
+    @media (max-width: 600px) {
+      .image-text-box {
+        width: 100%;
+        max-width: 100%;
+        margin-left: 0;
+        margin-right: 0;
+        border-radius: 0;
+        padding: 1rem 0.75rem;
+        text-align: left;
+        /* optional: center if you prefer */
+      }
+
+      .hero-image {
+        width: 100%;
+        height: auto;
+        display: block;
+        margin: 0 auto;
+      }
+
+      .hero-caption,
+      .image-text-box p {
+        font-size: 1rem;
+        line-height: 1.4;
+      }
+    }
+
+    .icon-button {
+      background-color: rgb(102, 78, 17);
+      color: white !important;
+      font-size: 1rem;
+      font-weight: 600;
+      border: .5px solid white;
+      border-radius: 8px;
+      padding: 10px 20px;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+      transition: background-color 0.3s, transform 0.2s;
+      text-align: center;
+      margin: 0.3rem;
+      margin-top: 1rem;
+    }
+
+    /* Container Around Chart and Button */
+    .feel-good-container {
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    /* parent row */
+    .feel-good-container {
+      display: flex !important;
+      flex-wrap: nowrap !important;
+      /* don't wrap to the next line */
+      justify-content: center;
+      align-items: center;
+      gap: .75rem;
+    }
+
+    /* the buttons */
+    .feel-good-container .icon-button {
+      display: inline-flex !important;
+      /* not block */
+      width: auto !important;
+      /* don't stretch full width */
+      min-width: 120px;
+      max-width: none;
+      justify-content: center;
+    }
+
+    /* (optional) if you still have a global rule making buttons full width) */
+    button.icon-button {
+      width: auto !important;
+    }
+
+    /* Section headers (like "Your Message to Yourself") */
+    #letterDisplayContainer h3,
+    .three-d-title {
+      color: #c1e4c1;
+      /* mint green */
+      text-align: center;
+      font-weight: bold;
+    }
+
+    /* Paragraph / body text */
+    #letterDisplay,
+    p,
+    label,
+    .statusline {
+      color: white;
+      /* stays white */
+    }
+
+    /* Buttons */
+    .icon-button {
+      background-color: #98ff98;
+      /* mint */
+      color: rgb(3, 3, 82) !important;
+      /* navy text */
+      font-weight: 600;
+      border: 2px solid white;
+      border-radius: 8px;
+      padding: 10px 20px;
+      cursor: pointer;
+      transition: background-color 0.3s, transform 0.2s;
+    }
+
+    /* Hover */
+    .icon-button:hover {
+      background-color: #20c997;
+      /* pastel teal */
+      color: white;
+      /* flip to white on hover */
+      transform: scale(1.05);
+    }
+
+    /* Active click state */
+    .icon-button:active {
+      transform: scale(0.97);
+    }
+
+    /* ============== text container =============== */
+    /* Specifically target your message text */
+    #letterDisplay {
+      color: black;
+      margin: 0;
+      white-space: pre-wrap;
+      /* preserve line breaks */
+      font-size: 1.1rem;
+      line-height: 1.5;
+    }
+
+    /* White container ONLY around the saved message */
+        
+    /* ===================== styles.css overrides ==================== */
+    .button-row {
+      display: flex;
+      /* put buttons in a row */
+      justify-content: center;
+      /* center them horizontally */
+      align-items: center;
+      /* align vertically */
+      gap: .5rem;
+      /* small space between */
+    }
+
+    .button-row button {
+      flex: 0 0 auto;
+      /* don’t stretch */
+      width: auto;
+      /* shrink to fit text */
+      margin: 3.9;
+      /* remove extra spacing */
+    }
+
+    /* White container ONLY around the saved message */
+.letter-box {
+  background: white;               /* white background */
+  color: black !important;         /* text inside is black */
+  width: 100%;                     /* stretch across parent container */
+  max-width: 600px;                /* optional: limit width so it’s not too wide */
+  margin: 0.5rem auto;             /* center horizontally with some space on top */
+  padding: 1rem;                   /* proper inner padding */
+  border-radius: 10px;             /* rounded corners */
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2); /* subtle shadow */
+  box-sizing: border-box;          /* include padding in width */
+}
+
+/* Style the saved message text */
+#letterDisplay {
+  margin: 0;
+  white-space: pre-wrap;  /* preserve line breaks */
+  font-size: 1.1rem;
+  line-height: 1.5;
+  color: black;           /* ensure text shows correctly */
+}
+
+/* Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: #fafafa;
+            border-top: 1px solid rgba(69, 111, 179, 0.903);
+            display: flex;
+            justify-content: space-around;
+            padding: 0.8rem 0;
+            z-index: 1000;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .nav-icon {
+            text-decoration: none;
+            color: rgba(69, 111, 179, 0.903);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 1.2rem;
+        }
+
+        .nav-icon span {
+            font-size: 0.75rem;
+            margin-top: 0.2rem;
+        }
+
+        .nav-icon:hover {
+            color: #72aadf;
+        }
+
+        /* Support List Items */
+        .support-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: rgba(40, 150, 180, 0.557);
+            padding: .2rem;
+            border-radius: 1rem;
+            border-left: 8px solid goldenrod;
+            margin-bottom: 0.75rem;
+        }
+
+        /* Updated CSS with consistent nav-icon styles across pages */
+
+        /* -------------------- BASE PAGE LAYOUT -------------------- */
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            color: rgb(40, 130, 180);
+            background-size: cover;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-bottom: 6rem;
+            box-sizing: border-box;
+            font-family: 'Open Sans', sans-serif;
+            color: var(--text-color);
+            overflow-x: hidden;
+        }
+
+        body {
+            background-color: rgb(3, 3, 82) !important;
+            color: white;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            box-sizing: border-box;
+            font-family: 'Open Sans', sans-serif;
+            text-align: center;
+            padding-bottom: 6rem;
+            overflow-x: hidden;
+        }
+
+        /* -------------------- NAV ICON CONSISTENCY -------------------- */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: #fafafa;
+            border-top: 1px solid rgba(69, 111, 179, 0.903);
+            display: flex;
+            justify-content: space-around;
+            padding: 0.8rem 0;
+            z-index: 1000;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .nav-icon {
+            text-decoration: none;
+            color: rgba(69, 111, 179, 0.903);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            transition: color 0.3s ease;
+        }
+
+        .nav-icon span {
+            font-size: 0.75rem;
+            margin-top: 0.2rem;
+            color: rgba(69, 111, 179, 0.903);
+        }
+
+        .nav-icon:hover,
+        .nav-icon:focus {
+            color: #72aadf;
+            outline: none;
+        }
+
+        /* Ensure pet.html uses same nav-icon class structure */
+        a.nav-icon {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            color: rgba(69, 111, 179, 0.903);
+            font-size: 1.3rem;
+            transition: color 0.3s ease;
+        }
+
+        a.nav-icon span {
+            font-size: 0.75rem;
+            margin-top: 0.2rem;
+            color: rgba(69, 111, 179, 0.903);
+        }
+
+        a.nav-icon:hover,
+        a.nav-icon:focus {
+            color: #72aadf;
+            outline: none;
+        }
+
+/* ================== container overrides ================= */
+/* === Fix prompt block layout inside the form === */
+#letterForm { 
+  max-width: 680px;
+  margin: 0 auto;         /* keep the form centered on the page */
+  text-align: left;       /* but left-align content inside it */
+}
+
+/* Summary line (click to open) */
+#letterForm details summary {
+  text-align: left;
+  list-style: none;        /* hides default triangle (you already remove marker elsewhere) */
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 19px;
+}
+
+/* The prompt list */
+#letterForm details ul {
+  margin: 0.5rem 0 0;
+  padding-left: 1.25rem;   /* restore normal list indent */
+  list-style: disc outside;
+  text-align: left;
+}
+
+/* Each prompt line */
+#letterForm details li {
+  margin: 0.35rem 0;
+  line-height: 1.4;
+}
+
+/* Optional: color the bullets a bit minty */
+#letterForm details li::marker {
+  color: #a0f0a0;
+}
+
+ul.right-align li::marker { color: #98ff98; }  /* mint bullet */
+ul.right-align li { color: white; }
+
+/* ================= loaded/saved status ==================== */
+.statusline { color:#bbb; font-size:.9rem; text-align:center; margin:.3rem 0; }
+
+/* ================= register css add ons ================ */
+.legal-footer a { color: #C9BBFF !important; }              /* link color */
+.legal-footer a:hover { text-decoration: underline; filter: brightness(1.12); }
+</style>
+</head>
+
+<body>
+  <div class="page-wrapper">
+    <div class="dreamy-box">
+      <h1 class="three-d-title">💌 Letter to Future Me</h1>
+
+      <h2></h2>
+      <form id="letterForm">
+        <label for="letterInput">Write something comforting or motivational for your future self:</label>
+
+        <details>
+          <summary>🌈 Need inspiration? Try these prompts</summary>
+          <h4><ul class="right-align">
+            <li>✨ What has helped you feel stable lately?</li>
+            <li>💪 What are you proud of yourself for?</li>
+            <li>🛠️ What coping tools do you want to remember?</li>
+            <li>💖 What would you want someone you love to hear if they felt this way?</li>
+            <li>🫶 What would future you want to remember on a hard day?</li>
+         </ul></h4>
+        </details><br>
+
+        <textarea id="letterInput" placeholder="Type your message..."></textarea>
+      </form>
+<br>
+      <!-- Save + status -->
+      <div class="button-row">
+        <button type="button" class="icon-button" id="saveBtn">💾 Save</button>
+      </div>
+      <div id="state" class="statusline">—</div>
+
+      <!-- Display area (single container!) -->
+      <div id="letterDisplayContainer" style="display:none; margin-top:1rem;">
+        <h3>📝 Your Message to Yourself</h3>
+
+        <div class="letter-box">
+          <p id="letterDisplay"></p>
+        </div>
+<br>
+        <!-- Timestamp goes here: below white box, outside it -->
+        <div id="updated" class="timestamp"></div>
+<br>
+        <!-- Delete button goes under the timestamp -->
+        <div class="button-row">
+          <button type="button" class="icon-button" id="deleteBtn">🗑️ Delete</button>
+        </div>
+      </div>
+
+      <a href="wellness.html" class="backToApp">← Back</a>
+<br><br>
+      <!-- ADDED: minimal, visible Privacy link (no other layout changes) -->
+      <div class="legal-footer" role="contentinfo">
+        View our <a href="privacy.html" rel="noopener">Privacy Policy</a>.
+      </div>
+  
+      <footer class="bottom-nav">
+        <a href="index.html" class="nav-icon">🏠<span>Home</span></a>
+        <a href="toolkit-hub.html" class="nav-icon">🧰<span>Toolkit</span></a>
+        <a href="wellness.html" class="nav-icon">💖<span>Wellness</span></a>
+        <a href="pet.html" class="nav-icon">🐾<span>Pet</span></a>
+        <a href="important-numbers.html" class="nav-icon">🆘<span>Help</span></a>
+      </footer>
+
+      <!-- ================== page script ================= -->
+      <script type="module">
+        import { auth, db } from "./firebase-init.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import {
+          doc, getDoc, setDoc, deleteDoc,
+          serverTimestamp, Timestamp,
+          getDocFromCache
+        } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        /* ========== Tiny toast (shared look) ========== */
+        function ensureToastUI() {
+          if (!document.getElementById("toast-style")) {
+            const s = document.createElement("style"); s.id = "toast-style";
+            s.textContent = `
+                  .toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%) translateY(16px);
+                    min-width:240px;max-width:92vw;padding:12px 16px;border-radius:12px;background:rgba(0,0,0,.85);
+                    color:#fff;font-weight:600;font-size:14px;line-height:1.35;box-shadow:0 6px 20px rgba(0,0,0,.25);
+                    opacity:0;pointer-events:none;transition:opacity .25s ease,transform .25s ease;z-index:9999}
+                  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:auto}
+                  .toast .small{display:block;font-weight:500;opacity:.85;margin-top:4px}`;
+            document.head.appendChild(s);
+          }
+          if (!document.getElementById("appToast")) {
+            const d = document.createElement("div");
+            d.id = "appToast"; d.className = "toast"; d.role = "status"; d.setAttribute("aria-live", "polite");
+            document.body.appendChild(d);
+          }
+        }
+        function showToast(msg, sub = "") {
+          ensureToastUI();
+          const el = document.getElementById("appToast");
+          el.innerHTML = sub ? `${msg}<span class="small">${sub}</span>` : msg;
+          el.classList.add("show");
+          clearTimeout(showToast._t);
+          showToast._t = setTimeout(() => el.classList.remove("show"), 2400);
+        }
+
+        /* ========== DOM ========== */
+        const $ = id => document.getElementById(id);
+        const statusEl = $("state");
+        const updatedEl = $("updated");
+        const letterEl = $("letterInput");
+        const outEl = $("letterDisplay");
+        const outWrap = $("letterDisplayContainer");
+        const saveBtn = $("saveBtn");
+        const delBtn = $("deleteBtn");
+
+        /* ========== State ========== */
+        let ref = null;
+        let uid = null;
+        const PENDING_KEY = "letter:pending"; // {text, uid, ts}
+
+        /* ========== Theme helpers ========== */
+        function swapTheme(cls) {
+          const root = document.documentElement;
+          [...root.classList].forEach(c => { if (c.startsWith("theme-")) root.classList.remove(c); });
+          root.classList.add(cls || "theme-original");
+        }
+
+        function renderLetterPreview(text) {
+          const t = (text || "").trim();
+          outEl.textContent = t;
+          outWrap.style.display = t ? "block" : "none";
+        }
+
+        /* ========== Strong online test (cross-origin probe) ========== */
+        async function isReallyOnline(timeoutMs = 2500) {
+          if (!navigator.onLine) return false;
+          const url = `https://clients3.google.com/generate_204?ts=${Date.now()}`;
+          try {
+            const ctrl = new AbortController();
+            const t = setTimeout(() => ctrl.abort(), timeoutMs);
+            await fetch(url, { mode: "no-cors", cache: "no-store", signal: ctrl.signal });
+            clearTimeout(t);
+            return true; // fetch layer worked → online
+          } catch {
+            return false;
+          }
+        }
+
+        /* ========== Load existing letter (cache-first) ========== */
+        async function load() {
+          statusEl.textContent = "Loading…";
+          try {
+            let s = await getDocFromCache(ref).catch(() => null);
+            if (!s || !s.exists()) s = await getDoc(ref);
+
+            if (s.exists()) {
+              const d = s.data() || {};
+              letterEl.value = "";                 // keep input empty
+              renderLetterPreview(d.text || "");   // show only last saved server copy
+              updatedEl.textContent =
+                d.updatedAt instanceof Timestamp ? "Updated: " + d.updatedAt.toDate().toLocaleString() : "";
+            } else {
+              letterEl.value = "";
+              renderLetterPreview("");
+              updatedEl.textContent = "";
+            }
+
+            // If there’s a pending local draft, *do not* render it into the display.
+            // Just inform the user that it will sync when online.
+            try {
+              const pending = JSON.parse(localStorage.getItem(PENDING_KEY) || "null");
+              if (pending && pending.uid === uid && pending.text) {
+                statusEl.textContent = "Pending — will save when online";
+              } else {
+                statusEl.textContent = "";
+              }
+            } catch { statusEl.textContent = ""; }
+
+          } catch {
+            statusEl.textContent = "";
+          }
+        }
+
+        /* ========== Save / Delete ========== */
+        async function saveLetter() {
+          const text = (letterEl.value || "").trim();
+          if (!text) { letterEl.focus(); return; }
+
+          statusEl.textContent = "Saving…";
+
+          if (await isReallyOnline()) {
+            try {
+              await setDoc(ref, { text, updatedAt: serverTimestamp() }, { merge: true });
+              // Now that it’s truly saved to cloud, show it in the display
+              renderLetterPreview(text);
+              letterEl.value = "";
+              statusEl.textContent = "Saved ✓";
+              showToast("Saved");
+              // refresh timestamp from server (best effort)
+              try {
+                const snap = await getDoc(ref);
+                const ts = snap.get("updatedAt");
+                updatedEl.textContent = ts ? "Updated: " + ts.toDate().toLocaleString() : "";
+              } catch { }
+              try { localStorage.removeItem(PENDING_KEY); } catch { }
+            } catch (e) {
+              statusEl.textContent = "Save error";
+              showToast("Couldn’t save", "Please try again.");
+            }
+          } else {
+            // Offline path: keep a pending draft locally, DO NOT render into display
+            try {
+              localStorage.setItem(PENDING_KEY, JSON.stringify({ text, uid, ts: Date.now() }));
+            } catch { }
+            statusEl.textContent = "Pending — will save when online";
+            showToast("Will save when online", "We’ll sync this once you reconnect.");
+            // Do not change the display; only clear the input for a clean feel
+            letterEl.value = "";
+          }
+        }
+
+        async function deleteLetter() {
+          if (!confirm("Delete your letter?")) return;
+          statusEl.textContent = "Deleting…";
+          if (!(await isReallyOnline())) {
+            showToast("You’re offline", "Reconnect to delete from the cloud.");
+            statusEl.textContent = "Offline — not deleted";
+            return;
+          }
+          try {
+            await deleteDoc(ref);
+            letterEl.value = "";
+            renderLetterPreview("");
+            updatedEl.textContent = "";
+            statusEl.textContent = "Deleted ✓";
+            try { localStorage.removeItem(PENDING_KEY); } catch { }
+          } catch (e) {
+            alert("Delete failed: " + (e.message || e));
+            statusEl.textContent = "Delete error";
+          }
+        }
+
+        /* ========== Pending upload on reconnect (only then render) ========== */
+        let _uploadingPending = false;
+        async function tryUploadPending() {
+          if (_uploadingPending) return;
+          let pending = null;
+          try { pending = JSON.parse(localStorage.getItem(PENDING_KEY) || "null"); } catch { }
+          if (!pending || pending.uid !== uid || !pending.text) return;
+          if (!(await isReallyOnline())) return;
+
+          _uploadingPending = true;
+          try {
+            await setDoc(ref, { text: pending.text, updatedAt: serverTimestamp() }, { merge: true });
+            localStorage.removeItem(PENDING_KEY);
+            showToast("All set", "Your pending letter has synced.");
+            statusEl.textContent = "Saved ✓";
+            // Now render the freshly saved server version
+            renderLetterPreview(pending.text);
+            try {
+              const snap = await getDoc(ref);
+              const ts = snap.get("updatedAt");
+              updatedEl.textContent = ts ? "Updated: " + ts.toDate().toLocaleString() : "";
+            } catch { }
+          } catch {
+            // keep pending; will retry next online
+          } finally {
+            _uploadingPending = false;
+          }
+        }
+
+        /* ========== Auth + boot ========== */
+        onAuthStateChanged(auth, async (user) => {
+          if (!user) { location.href = "login.html?next=letter.html"; return; }
+          uid = user.uid;
+          ref = doc(db, "users", uid, "private", "letter");
+
+          await load();
+
+          // cache-first theme
+          try {
+            const uref = doc(db, "users", uid);
+            const cached = await getDocFromCache(uref).catch(() => null);
+            const snap = cached?.exists() ? cached : await getDoc(uref);
+            swapTheme(snap?.exists() ? (snap.data().themeClass || "theme-original") : "theme-original");
+          } catch { }
+
+          // Upload pending only if we truly are online at boot
+          try { if (await isReallyOnline()) await tryUploadPending(); } catch { }
+        });
+
+        /* ========== Events ========== */
+        saveBtn?.addEventListener("click", saveLetter);
+        delBtn?.addEventListener("click", deleteLetter);
+
+        // On reconnect, upload pending once (then it will appear)
+        window.addEventListener("online", async () => {
+          showToast("Back online", "Syncing any pending items…");
+          await tryUploadPending();
+        });
+      </script>
+                                          
+</body>
+
+</html>

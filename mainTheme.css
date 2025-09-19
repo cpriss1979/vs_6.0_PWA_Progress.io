@@ -1,0 +1,298 @@
+/* ============= mainTheme.css ============== */
+/* Theme variables (fallbacks) + small utilities */
+
+/* Theme chooser UI */
+.theme-gallery {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    padding: 1rem;
+}
+
+.theme-card {
+    border: 2px solid #ccc;
+    padding: 1rem;
+    width: 200px;
+    border-radius: 10px;
+    background-color: #f7f7f7;
+    text-align: center;
+    box-shadow: 0 0 5px rgba(0, 0, 0, .1);
+}
+
+.theme-card.locked {
+    opacity: .5;
+    pointer-events: none;
+}
+
+/* ---- Global CSS custom properties (fallbacks) ---- */
+:root {
+    --bg-color: #ffffff;
+    --text-color: rgb(3, 3, 82);
+    --accent-color: #87ceeb;
+    /* default blue */
+    /* Alias so JS that reads --accent or --accent-color both work */
+    --accent: var(--accent-color);
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color) !important;
+}
+
+/* Elements that should tint with the theme accent */
+.button,
+.popup {
+    background-color: var(--accent-color);
+    color: var(--text-color);
+}
+
+/* ================== Core Themes (yours) ================== */
+
+.theme-original {
+    --bg-color: #ffffff;
+    --text-color: purple;
+    --accent-color: #6095aa;
+}
+
+/* Simple palettes you already had */
+.theme-blue {
+    --bg-color: #aad7f6;
+    --text-color: #0d47a1;
+    --accent-color: #42a5f5;
+}
+
+.theme-green {
+    --bg-color: #b9dbbc;
+    --text-color: #1b5e20;
+    --accent-color: #3d4c3e;
+}
+
+.theme-pink {
+    --bg-color: #ebbad6;
+    --text-color: #880e4f;
+    --accent-color: #f06292;
+}
+
+.theme-purple {
+    --bg-color: #3e3578;
+    --text-color: #9987cc;
+    --accent-color: #e697e4;
+}
+
+.theme-greenmed {
+    --bg-color: #6fca8c;
+    --text-color: #004d40;
+    --accent-color: #263c3a;
+}
+
+.theme-pinkmed {
+    --bg-color: #e03fa8;
+    --text-color: #621547;
+    --accent-color: #280c16;
+}
+
+.theme-darkblue {
+    --bg-color: #1e2a38;
+    --text-color: #3f8cb5;
+    --accent-color: #3f51b5;
+}
+
+.theme-darkgreen {
+    --bg-color: #1c611c;
+    --text-color: #43a043;
+    --accent-color: #c9f0cb;
+}
+
+.theme-darkrose {
+    --bg-color: #7e1b35;
+    --text-color: #ea95b1;
+    --accent-color: #ebbbce;
+}
+
+.theme-arcade {
+    --bg-color: #2e0505;
+    --text-color: #c14242;
+    --accent-color: #ff3131;
+}
+
+/* Named story themes from About page (with friendly aliases) */
+
+/* Bingo Yellow */
+.theme-bingo {
+    --bg-color: #e6f640;
+    --text-color: #767931;
+    --accent-color: #0a0a0a;
+}
+
+/* Bumblebee Yellow */
+.theme-bumblebee {
+    --bg-color: #d0c65d;
+    --text-color: #3e3e3e;
+    --accent-color: #282722;
+}
+
+/* Stella Peach */
+.theme-peach,
+.theme-stella-peach {
+    --bg-color: #F9C5A0;
+    /* warm peach */
+    --text-color: #5A3E36;
+    /* cocoa brown */
+    --accent-color: #3b311d;
+}
+
+/* Santafe Red */
+.theme-santafe,
+.theme-santafe-red {
+    --bg-color: #C8102E;
+    /* classic Santa Fe red */
+    --text-color: #FFE3E7;
+    /* soft light */
+    --accent-color: #6b0010;
+    /* deep maroon */
+}
+
+/* Dolphin Blue */
+.theme-dolphin {
+    --bg-color: #1e557d;
+    /* deep ocean */
+    --text-color: #cc6ca0;
+    /* warm pink */
+    --accent-color: #d2dce4;
+    /* splash blue */
+}
+
+/* Moonlight Blue */
+.theme-moonlight {
+    --bg-color: #082042;
+    /* midnight sky */
+    --text-color: #64a4e4;
+    /* pale moon */
+    --accent-color: #9dcfff;
+    /* shimmer */
+}
+
+/* JR Green */
+.theme-jr,
+.theme-jr-green {
+    --bg-color: #2E7D32;
+    /* classic green */
+    --text-color: #E6F4EA;
+    /* light mint */
+    --accent-color: #0B3D0B;
+    /* forest */
+}
+
+/* Monkey Green */
+.theme-monkey,
+.theme-monkey-green {
+    --bg-color: #7CB342;
+    /* playful green */
+    --text-color: #2C3E1F;
+    /* deep olive */
+    --accent-color: #3D5A27;
+    /* earthy */
+}
+
+/* Golf Green */
+.theme-golf,
+.theme-golf-green {
+    --bg-color: #3E7C59;
+    /* fairway green */
+    --text-color: #E9F5EE;
+    /* light mint */
+    --accent-color: #1B4332;
+    /* pine */
+}
+
+/* Strawberry Pink */
+.theme-strawberry,
+.theme-strawberry-pink {
+    --bg-color: #FFC4D6;
+    /* strawberry cream */
+    --text-color: #8B1E3F;
+    /* berry */
+    --accent-color: #D81159;
+    /* vivid berry */
+}
+
+/* Shortcake Pink */
+.theme-shortcake {
+    --bg-color: #fddde6;
+    --text-color: #a84863;
+    --accent-color: #741151;
+}
+
+/* Prissy Pink */
+.theme-prissy,
+.theme-prissy-pink {
+    --bg-color: #F8C0E7;
+    --text-color: #6E1B4A;
+    --accent-color: #B3006E;
+}
+
+/* Date Rose */
+.theme-date-rose {
+    --bg-color: #F5D0DA;
+    /* soft rose */
+    --text-color: #7A1E2C;
+    /* deep rose */
+    --accent-color: #C94C66;
+    /* bouquet */
+}
+
+/* Sunburst Purple */
+.theme-sunburst,
+.theme-sunburst-purple {
+    --bg-color: #7E57C2;
+    /* vibrant purple */
+    --text-color: #F2E7FE;
+    /* soft light */
+    --accent-color: #FFD54F;
+    /* sunny gold */
+}
+
+/* Bubby-Bear Brown */
+.theme-bubby-bear {
+    --bg-color: #6e4f34;
+    /* teddy brown */
+    --text-color: #f9e8d9;
+    /* vanilla */
+    --accent-color: #4fa74f;
+    /* honey green */
+}
+
+/* Brady Blue */
+.theme-brady {
+    --bg-color: #B0C4DE;
+    --text-color: #2F4F4F;
+    --accent-color: #244159;
+}
+
+/* ================= Theme-aware sections ================= */
+.top-journal-section,
+.gradient-section-box,
+.bottom-wrapper,
+.full-journal-box {
+    background: var(--bg-color);
+    color: var(--text-color);
+}
+
+/* Helpful utility to force themed text */
+.theme-colored-text {
+    color: var(--text-color) !important;
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+/* Headings: keep text themed; DO NOT force a background
+   (lets pages like about.html let <h2> inherit its pink box) */
+h2 {
+    color: var(--text-color) !important;
+    background: transparent;
+}
+
+/* On pink boxes, let the H2 inherit the parent’s bg */
+.theme-section h2 {
+    background: inherit !important;
+}
