@@ -1,4 +1,6 @@
-// sw.js
+// sw.js — 3-Sides Planner (v29)
+// Drop-in: preserves your structure, adds robustness for PWABuilder + GH Pages
+
 (() => {
     // --- Guard: only run when actually in a Service Worker context ---
     const isSW =
@@ -13,7 +15,7 @@
     const CACHE_PREFIX = "3-sides-planner-v";
     const CACHE_NAME = `${CACHE_PREFIX}${SWV}`;
 
-    // Scope-aware helper for absolute same-origin URLs
+    // Scope-aware helper for absolute same-origin URLs (GitHub Pages safe)
     const scope =
         (self.registration && self.registration.scope) ||
         self.location.origin + "/";
@@ -92,7 +94,7 @@
                         }
                     })
                 );
-                // Helps first update in some browsers; final control happens via SKIP_WAITING message
+                // Helps first update; we also claim in activate
                 self.skipWaiting();
             })()
         );
@@ -119,7 +121,7 @@
                     } catch { /* ignore */ }
                 }
 
-                await self.clients.claim();
+                await self.clients.claim(); // take control immediately
             })()
         );
     });
@@ -145,11 +147,11 @@
             return net;
         } catch {
             // Offline / error → fallback to cached page or home
-            return (
+            // Handle start_url with query string by ignoring search when matching
+            const cached =
                 (await cache.match(event.request)) ||
-                (await caches.match(P("index.html"))) ||
-                Response.error()
-            );
+                (await caches.match(P("index.html"), { ignoreSearch: true }));
+            return cached || Response.error();
         }
     }
 
@@ -157,9 +159,8 @@
         const req = event.request;
         const cache = await caches.open(CACHE_NAME);
 
-        const cached = await cache.match(req);
+        const cached = await cache.match(req, { ignoreSearch: false });
 
-        // Cache if OK *or* opaque (cross-origin allowed)
         const fetchAndUpdate = fetch(req)
             .then((res) => {
                 if (res && (res.ok || res.type === "opaque")) {
@@ -188,20 +189,20 @@
         if (req.method !== "GET") return;
         if (
             req.url.startsWith("chrome-extension://") ||
-            req.url.startsWith("safari-extension://")
+            req.url.startsWith("safari-extension://") ||
+            req.url.startsWith("moz-extension://")
         ) return;
 
         // 🔕 Skip caching for Firebase/Google infra traffic (long-poll, auth, analytics)
         try {
             const host = new URL(req.url).hostname;
             const BYPASS_HOSTS = [
-                // firestore.googleapis.com, firebasestorage.googleapis.com
                 "googleapis.com",
                 "gstatic.com",
                 "firebaseinstallations.googleapis.com",
                 "googletagmanager.com",
                 "analytics.google.com",
-                "www.google-analytics.com",
+                "www.google-analytics.com"
             ];
             if (BYPASS_HOSTS.some((h) => host === h || host.endsWith("." + h))) {
                 return; // let the network handle it (don’t intercept/cache)
