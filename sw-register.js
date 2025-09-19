@@ -9,7 +9,7 @@
     }
 
     // Bump this ONLY when sw.js itself changes
-    const SW_VERSION = 10; // ⬅️ bump when you edit sw.js
+    const SW_VERSION = 11; // ⬅️ bump when you edit sw.js
 
     // Compute the repo base robustly:
     // - On GitHub Pages project sites: "/<repo>/"
